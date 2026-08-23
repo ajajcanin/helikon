@@ -9,7 +9,7 @@ type EmailFieldProps = {
 
 export function EmailField({ id, value, onChange, disabled = false }: EmailFieldProps) {
   return (
-    <div className="min-w-[180px] flex-[1_1_200px]">
+    <div className="min-w-[180px] flex-[1_1_200px] max-[720px]:flex-none">
       <VisuallyHidden as="label" htmlFor={id}>
         Vaša e-pošta
       </VisuallyHidden>
