@@ -8,7 +8,7 @@ import { SubscribeForm } from "../molecules/SubscribeForm";
 export function HeroContent() {
   return (
     <section className="relative z-2 mx-auto flex w-full max-w-[780px] flex-1 flex-col items-center justify-center px-8 pt-6 pb-10 text-center max-[720px]:px-[22px] max-[720px]:pt-4 max-[720px]:pb-8">
-      <StarMark size="lg" alt="Helikon — zvijezda muza" className="mb-[30px]" />
+      <StarMark size="lg" alt="Helikon - zvijezda muza" className="mb-[30px]" />
 
       <Overline tone="accent" size="md" className="animate-rise">
         Radnja se sprema · Otvaranje 2026
@@ -24,7 +24,7 @@ export function HeroContent() {
         Police se pune, boje biraju, a detalji polako dolaze na svoje mjesto.
       </BodyParagraph>
       <BodyParagraph className="animate-rise-delay-2 mt-[18px] max-[720px]:text-lg">
-        Uskoro otvaramo vrata Helikona — kuće umjetničkih materijala, stvorene za one koji
+        Uskoro otvaramo vrata Helikona - kuće umjetničkih materijala, stvorene za one koji
         od praznog platna vide početak.
       </BodyParagraph>
       <BodyParagraph className="animate-rise-delay-2 mt-[18px] max-[720px]:text-lg">

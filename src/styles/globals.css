@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Vault theme — trimmed from the design system's color/lighting/motion tokens,
+/* Vault theme - trimmed from the design system's color/lighting/motion tokens,
    scoped to what the coming-soon page actually renders. */
 :root {
   --bg-page: #17140f;

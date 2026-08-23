@@ -28,13 +28,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://helikon.ba";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: "Helikon — kuća umjetničkih materijala",
+  title: "Helikon - kuća umjetničkih materijala",
   description:
-    "Uskoro otvaramo vrata Helikona — kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
+    "Uskoro otvaramo vrata Helikona - kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
   openGraph: {
-    title: "Helikon — kuća umjetničkih materijala",
+    title: "Helikon - kuća umjetničkih materijala",
     description:
-      "Uskoro otvaramo vrata Helikona — kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
+      "Uskoro otvaramo vrata Helikona - kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
     url: siteUrl,
     siteName: "Helikon",
     images: [{ url: "/images/og-image.jpg", width: 1200, height: 630 }],
@@ -43,9 +43,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Helikon — kuća umjetničkih materijala",
+    title: "Helikon - kuća umjetničkih materijala",
     description:
-      "Uskoro otvaramo vrata Helikona — kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
+      "Uskoro otvaramo vrata Helikona - kuće umjetničkih materijala u Sarajevu. Prijavite se i budite prvi koji će znati.",
     images: ["/images/og-image.jpg"],
   },
   // TEMPORARY: coming-soon noindex. REMOVE this metadata robots block and the
