@@ -28,13 +28,14 @@ Copy `.env.example` to `.env.local` and fill in:
 - `RESEND_AUDIENCE_ID` — the Resend Audience to add signups to
 - `NEXT_PUBLIC_SITE_URL` — used for absolute Open Graph/Twitter image URLs
 
-## Assets still needed
+## Brand assets
 
-- `public/images/og-image.jpg` — 1200×630 share-preview image referenced in
-  `src/app/layout.tsx`
-
-Favicon is `src/app/icon.svg` (the brand star mark), picked up automatically
-by Next's file-based icon convention.
+- Favicon: `src/app/icon.svg` (the brand star mark), picked up automatically
+  by Next's file-based icon convention, plus `public/favicon.ico` for
+  broader compatibility.
+- Share preview: `public/images/og-image.jpg` — 1200×630, referenced in
+  `src/app/layout.tsx`. Built from the same star mark and wordmark used in
+  the site header.
 
 ## Structure
 
