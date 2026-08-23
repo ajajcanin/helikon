@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.helikon.ba" }],
+        destination: "https://helikon.ba/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
