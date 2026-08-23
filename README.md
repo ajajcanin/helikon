@@ -30,9 +30,11 @@ Copy `.env.example` to `.env.local` and fill in:
 
 ## Assets still needed
 
-- `public/favicon.ico` (or `src/app/icon.png`) — browser-tab icon
 - `public/images/og-image.jpg` — 1200×630 share-preview image referenced in
   `src/app/layout.tsx`
+
+Favicon is `src/app/icon.svg` (the brand star mark), picked up automatically
+by Next's file-based icon convention.
 
 ## Structure
 
