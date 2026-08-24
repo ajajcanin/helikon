@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Cinzel, EB_Garamond, Inter } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import "@/styles/globals.css";
 
 const cinzel = Cinzel({
@@ -61,12 +62,15 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
   return (
     <html
       lang="bs"
       className={`${cinzel.variable} ${ebGaramond.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full font-body">{children}</body>
+      {gaId && <GoogleAnalytics gaId={gaId} />}
     </html>
   );
 }
