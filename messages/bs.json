@@ -467,9 +467,7 @@
     "text": "Tekst",
     "shelves": "Odjeljenja",
     "sectionTitle": "Naslov",
-    "featured": "Izdvojeni artikli",
-    "featuredSkus": "Šifre artikala (do 8, odvojene zarezom)",
-    "featuredHint": "Ostavite prazno i prodavnica sama bira artikle na stanju. Prikazuju se samo objavljeni artikli.",
+    "featured": "Naslov sekcije „Iz naše ponude”",
     "visit": "Posjetite radnju",
     "pages": "Stranice",
     "pagesHint": "Stranica se vidi kupcima čim ima tekst. Prazna stranica je skrivena.",
@@ -484,5 +482,20 @@
     "articleTitle": "Naslov",
     "excerpt": "Kratak opis",
     "publish": "Objavljeno"
+  },
+  "featured": {
+    "title": "Iz naše ponude: artikli",
+    "hint": "Do {max} artikala, ovim redom. Promjene se odmah čuvaju. Ako je lista prazna, prodavnica sama bira artikle na stanju.",
+    "howMany": "Koliko",
+    "bestSold": "Najprodavaniji",
+    "bestProfit": "Najveća zarada",
+    "search": "Pretraži po nazivu, boji ili šifri",
+    "empty": "Još nema izabranih artikala.",
+    "remove": "Ukloni s liste",
+    "stock": "{count} kom",
+    "hidden_draft": "Nije objavljen",
+    "hidden_stock": "Nema na stanju",
+    "confirmReplace": "Ovo će zamijeniti trenutnu listu. Nastaviti?",
+    "noSales": "Još nema prodaje za ovaj izbor, pa lista nije promijenjena."
   }
 }

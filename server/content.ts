@@ -13,8 +13,6 @@ export const homeContentSchema = z.object({
   shelvesTitle: z.string().trim().min(1, "Upišite naslov.").max(80),
   shelvesText: z.string().trim().max(300),
   featuredTitle: z.string().trim().min(1, "Upišite naslov.").max(80),
-  /** Šifre, separated by commas or spaces. Empty: the shop picks products itself. */
-  featuredSkus: z.string().trim().max(200),
   visitTitle: z.string().trim().min(1, "Upišite naslov.").max(80),
   visitText: z.string().trim().max(300),
 });
@@ -29,7 +27,6 @@ export const HOME_DEFAULTS: HomeContent = {
   shelvesTitle: "Odjeljenja radnje",
   shelvesText: "Razvrstano kao u apoteci pigmenata: svaka polica svoj red, svaka boja svoje mjesto.",
   featuredTitle: "Iz naše ponude",
-  featuredSkus: "",
   visitTitle: "Boja se bira uživo",
   visitText: "Dođite u našu radnju u Sarajevu, uzmite uzorke u ruke i vidite boju pod pravom svjetlošću.",
 };
@@ -39,6 +36,14 @@ export async function getHomeContent(): Promise<HomeContent> {
 }
 
 export { HOME_KEY };
+
+export const FEATURED_KEY = "content:featured";
+export const FEATURED_MAX = 8;
+
+/** The homepage's chosen products, in order. Empty: the shop picks products itself. */
+export async function getFeaturedIds(): Promise<number[]> {
+  return (await getSetting<{ ids?: number[] }>(FEATURED_KEY, {})).ids ?? [];
+}
 
 /** Pages with fixed addresses. Each stays hidden until it has text, so no empty page is ever linked. */
 export const CONTENT_PAGES = [

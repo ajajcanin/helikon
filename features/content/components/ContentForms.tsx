@@ -86,8 +86,6 @@ export function HomeForm({ initial }: { initial: HomeContent }) {
       <h3 className={group}>{t("featured")}</h3>
       <div className="grid gap-3">
         <Input label={t("sectionTitle")} {...input("featuredTitle")} />
-        <Input label={t("featuredSkus")} placeholder="1001, 1238, 2402" {...input("featuredSkus")} />
-        <p className="font-ui text-xs text-[var(--text-muted)]">{t("featuredHint")}</p>
       </div>
       <h3 className={group}>{t("visit")}</h3>
       <div className="grid gap-3">

@@ -3,8 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import interior from "@/public/images/shop-interior.png";
 import storefront from "@/public/images/shop-storefront.png";
-import { getHomeContent } from "@/server/content";
-import { listCategoryTree, listPublishedBySku, listPublishedProducts } from "@/server/public/catalog";
+import { getFeaturedIds, getHomeContent } from "@/server/content";
+import { listCategoryTree, listFeaturedProducts, listPublishedProducts } from "@/server/public/catalog";
 import { ProductCard, ProductGrid } from "./ProductCard";
 
 const PRIMARY =
@@ -14,10 +14,15 @@ const SECONDARY =
 
 export async function ShopHome() {
   const t = await getTranslations("shop");
-  const [tree, content] = await Promise.all([listCategoryTree(), getHomeContent()]);
-  const skus = content.featuredSkus.split(/[\s,]+/).filter(Boolean);
-  const featured = skus.length
-    ? await listPublishedBySku(skus)
+  const [tree, content, featuredIds] = await Promise.all([
+    listCategoryTree(),
+    getHomeContent(),
+    getFeaturedIds(),
+  ]);
+  const chosen = featuredIds.length ? await listFeaturedProducts(featuredIds) : [];
+  // With nothing chosen, or all of it out of stock, the shop still shows something.
+  const featured = chosen.length
+    ? chosen
     : await listPublishedProducts({ categorySlug: "metalik-boje", inStock: true, take: 4 });
   const first = tree[0];
   const count = (c: (typeof tree)[number]) =>

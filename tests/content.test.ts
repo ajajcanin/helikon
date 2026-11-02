@@ -17,8 +17,7 @@ import {
   listPublishedPages,
 } from "@/server/content";
 import { db } from "@/server/db";
-import { listPublishedBySku } from "@/server/public/catalog";
-import { resetDb, seedVariant } from "./helpers";
+import { resetDb } from "./helpers";
 
 const actor = { id: null, name: "Klijent" };
 
@@ -34,19 +33,6 @@ describe("homepage content", () => {
     await saveHomeContent({ ...HOME_DEFAULTS, titleFirst: "Novi" }, actor);
     expect((await getHomeContent()).titleFirst).toBe("Novi");
     await expect(saveHomeContent({ ...HOME_DEFAULTS, titleFirst: " " }, actor)).rejects.toThrow();
-  });
-
-  it("checks featured šifre and shows only published products, in the given order", async () => {
-    const a = await seedVariant();
-    const b = await seedVariant();
-    const hidden = await seedVariant({ status: "DRAFT" });
-    await expect(saveHomeContent({ ...HOME_DEFAULTS, featuredSkus: "nema-toga" }, actor)).rejects.toThrow(
-      /nema-toga/,
-    );
-    await saveHomeContent({ ...HOME_DEFAULTS, featuredSkus: `${b.sku},  ${a.sku} ${hidden.sku}` }, actor);
-    expect((await getHomeContent()).featuredSkus).toBe(`${b.sku}, ${a.sku}, ${hidden.sku}`);
-    const shown = await listPublishedBySku([b.sku, a.sku, hidden.sku]);
-    expect(shown.map((p) => p.id)).toEqual([b.productId, a.productId]);
   });
 });
 

@@ -7,14 +7,7 @@ import { setSetting } from "@/server/settings";
 
 export async function saveHomeContent(input: HomeContent, actor: AuditActor) {
   const data = homeContentSchema.parse(input);
-  const skus = data.featuredSkus.split(/[\s,]+/).filter(Boolean);
-  if (skus.length > 8) throw new UserError("Najviše 8 izdvojenih artikala.");
-  if (skus.length) {
-    const found = await db.productVariant.findMany({ where: { sku: { in: skus } }, select: { sku: true } });
-    const missing = skus.filter((sku) => !found.some((f) => f.sku === sku));
-    if (missing.length) throw new UserError(`Ne postoje šifre: ${missing.join(", ")}.`);
-  }
-  await setSetting(HOME_KEY, { ...data, featuredSkus: skus.join(", ") }, actor);
+  await setSetting(HOME_KEY, data, actor);
 }
 
 export async function savePageContent(
