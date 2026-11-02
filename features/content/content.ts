@@ -23,7 +23,17 @@ export async function savePageContent(
 export const listArticlesAdmin = () =>
   db.article.findMany({
     orderBy: { updatedAt: "desc" },
-    select: { id: true, title: true, slug: true, publishedAt: true, updatedAt: true, tags: true },
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      publishedAt: true,
+      updatedAt: true,
+      tags: true,
+      coverKey: true,
+      coverWidth: true,
+      coverHeight: true,
+    },
   });
 
 export const getArticleAdmin = (id: number) => db.article.findUnique({ where: { id } });
