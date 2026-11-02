@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { FIELD_CLASS } from "@/components/atoms/Field";
+import { FilterForm } from "@/components/molecules/FilterForm";
 import { Link } from "@/i18n/navigation";
 import { swatchColour } from "@/lib/colour-swatch";
 import { COLOUR_FAMILIES } from "../../classify";
@@ -11,7 +12,7 @@ type Props = {
   selected: { family: string; medium: string; inStock: boolean; sort: string };
 };
 
-/** A plain GET form and links, so filters work without JavaScript and every filtered page has its own address. */
+/** Links and a GET form, so filters also work without JavaScript and every filtered page has its own address. */
 export function CatalogFilters({ pathname, families, mediums, selected }: Props) {
   const t = useTranslations("shop");
   const heading = "mb-3 font-ui text-[11px] tracking-[0.2em] text-[var(--text-muted)] uppercase";
@@ -69,7 +70,7 @@ export function CatalogFilters({ pathname, families, mediums, selected }: Props)
           </ul>
         </div>
       )}
-      <form method="get" className="flex flex-col gap-4">
+      <FilterForm className="flex flex-col gap-4">
         {selected.family && <input type="hidden" name="boja" value={selected.family} />}
         {mediums.length > 1 && (
           <label className={heading}>
@@ -107,13 +108,15 @@ export function CatalogFilters({ pathname, families, mediums, selected }: Props)
           />
           {t("inStock")}
         </label>
-        <button
-          type="submit"
-          className="h-10 rounded-[2px] border border-[var(--border-brass)] font-ui text-sm text-[var(--accent-bright)]"
-        >
-          {t("apply")}
-        </button>
-      </form>
+        <noscript>
+          <button
+            type="submit"
+            className="h-10 w-full rounded-[2px] border border-[var(--border-brass)] font-ui text-sm text-[var(--accent-bright)]"
+          >
+            {t("apply")}
+          </button>
+        </noscript>
+      </FilterForm>
     </div>
   );
 }

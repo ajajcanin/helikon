@@ -293,6 +293,7 @@ export async function reviewOptions() {
       select: {
         id: true,
         name: true,
+        parentId: true,
         parent: { select: { name: true } },
         _count: { select: { children: true } },
       },
@@ -302,13 +303,23 @@ export async function reviewOptions() {
       select: { id: true, name: true, lines: { orderBy: { name: "asc" }, select: { id: true, name: true } } },
     }),
   ]);
+  const tops = categories.filter((c) => !c.parentId);
+  const childrenOf = (id: number) => categories.filter((c) => c.parentId === id);
   return {
-    categories: categories.map((c) => ({
-      id: c.id,
-      label: c.parent ? `${c.parent.name} > ${c.name}` : c.name,
-      // A top category with subcategories only groups them: products go in a subcategory.
-      isTop: !c.parent,
-      selectable: c._count.children === 0,
+    // Each subcategory straight after its parent, whatever their sort numbers.
+    categories: tops
+      .flatMap((top) => [top, ...childrenOf(top.id)])
+      .map((c) => ({
+        id: c.id,
+        label: c.parent ? `${c.parent.name} > ${c.name}` : c.name,
+        // A top category with subcategories only groups them: products go in a subcategory.
+        isTop: !c.parent,
+        selectable: c._count.children === 0,
+      })),
+    categoryTree: tops.map((top) => ({
+      id: top.id,
+      name: top.name,
+      children: childrenOf(top.id).map((c) => ({ id: c.id, name: c.name })),
     })),
     manufacturers,
   };

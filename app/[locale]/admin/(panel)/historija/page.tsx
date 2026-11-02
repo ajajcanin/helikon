@@ -1,6 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { FIELD_CLASS } from "@/components/atoms/Field";
 import { PageTitle } from "@/components/atoms/PageTitle";
+import { FilterForm } from "@/components/molecules/FilterForm";
 import { Pagination } from "@/components/molecules/Pagination";
 import { HISTORY_TABLES, listHistory } from "@/features/admin/history";
 import { activeQuery, pageParam, param, type SearchParams } from "@/lib/search-params";
@@ -16,7 +17,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Sear
   return (
     <>
       <PageTitle intro={t("intro")}>{t("title")}</PageTitle>
-      <form method="get" className="mb-6 flex items-end gap-3">
+      <FilterForm className="mb-6 flex items-end gap-3">
         <label className="block w-56 font-ui text-xs text-[var(--text-secondary)]">
           {t("table")}
           <select name="podrucje" defaultValue={podrucje} className={`${FIELD_CLASS} mt-1`}>
@@ -28,13 +29,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Sear
             ))}
           </select>
         </label>
-        <button
-          type="submit"
-          className="h-[38px] rounded-[2px] border border-[var(--accent)] px-4 font-ui text-sm text-[var(--accent-bright)]"
-        >
-          {c("filter")}
-        </button>
-      </form>
+      </FilterForm>
       {data.rows.length === 0 ? (
         <p className="text-[var(--text-muted)]">{c("empty")}</p>
       ) : (

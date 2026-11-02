@@ -76,13 +76,13 @@ Done and tested:
 4. Sheet import (`pnpm db:import`), public catalogue queries, storage and image sizes
 5. Shop pages, cart and checkout, order e-mails
 6. Admin: articles, categories, manufacturers, orders, delivery, analytics, users, settings, history
-7. Content forms for the homepage, pages and journal
+7. Content forms for the homepage and pages, a journal editor with images and product cards, and photo uploads
 
 Still to build:
 
-8. Photo uploads on R2, order e-mail retries, password reset, predračun and račun PDFs, card payment, legal texts
+8. Order e-mail retries, password reset, predračun and račun PDFs, card payment, legal texts
 
-Everything imported is a draft, so nothing appears publicly until it is reviewed and published, so nothing appears publicly until it is reviewed and published.
+Everything imported is a draft, so nothing appears publicly until it is reviewed and published.
 
 ## Pantheon and POS
 

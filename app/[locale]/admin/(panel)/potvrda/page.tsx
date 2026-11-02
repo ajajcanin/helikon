@@ -16,12 +16,13 @@ export default async function ReviewPage({
   const q = single(params.q);
   const status = single(params.status);
   const categoryId = single(params.kategorija);
+  const subcategoryId = single(params.podkategorija);
   const page = Math.max(1, Number(single(params.strana)) || 1);
   const [data, options] = await Promise.all([
     listForReview({
       q,
       status: status === "done" || status === "all" ? status : "open",
-      categoryId: Number(categoryId) || undefined,
+      categoryId: Number(subcategoryId) || Number(categoryId) || undefined,
       page,
     }),
     reviewOptions(),
@@ -32,6 +33,7 @@ export default async function ReviewPage({
       ...(q && { q }),
       ...(status && { status }),
       ...(categoryId && { kategorija: categoryId }),
+      ...(subcategoryId && { podkategorija: subcategoryId }),
       strana: to,
     },
   });
@@ -47,7 +49,8 @@ export default async function ReviewPage({
         q={q}
         status={status || "open"}
         categoryId={categoryId}
-        categories={options.categories}
+        subcategoryId={subcategoryId}
+        categoryTree={options.categoryTree}
       />
       {/* Keyed so changing page or filter starts from what the server holds. */}
       <ProductReview key={JSON.stringify(params)} rows={data.rows} options={options} />

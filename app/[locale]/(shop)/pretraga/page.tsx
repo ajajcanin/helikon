@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { FIELD_CLASS } from "@/components/atoms/Field";
+import { FilterForm } from "@/components/molecules/FilterForm";
 import { ProductCard, ProductGrid } from "@/features/catalog/components/shop/ProductCard";
 import { param, type SearchParams } from "@/lib/search-params";
 import { listPublishedProducts } from "@/server/public/catalog";
@@ -15,7 +16,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
       <h1 className="mb-6 font-display text-[32px] font-semibold tracking-[0.05em] text-[var(--text-display)] uppercase md:text-[42px]">
         {t("searchTitle")}
       </h1>
-      <form method="get" className="mb-8 max-w-lg">
+      <FilterForm className="mb-8 max-w-lg">
         <input
           name="q"
           type="search"
@@ -24,7 +25,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Searc
           placeholder={t("searchHint")}
           className={FIELD_CLASS}
         />
-      </form>
+      </FilterForm>
       {!q && <p className="font-body text-lg text-[var(--text-secondary)]">{t("searchStart")}</p>}
       {q && products.length === 0 && (
         <p className="font-body text-lg text-[var(--text-secondary)]">{t("searchEmpty", { q })}</p>

@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { FIELD_CLASS } from "@/components/atoms/Field";
 import { PageTitle } from "@/components/atoms/PageTitle";
+import { FilterForm } from "@/components/molecules/FilterForm";
 import { Pagination } from "@/components/molecules/Pagination";
+import { CategoryFilter } from "@/features/catalog/components/CategoryFilter";
 import { listProducts } from "@/features/catalog/products";
 import { reviewOptions } from "@/features/catalog/review";
 import type { ProductStatus } from "@/generated/prisma/enums";
@@ -17,13 +19,14 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   const c = await getTranslations("common");
   const q = param(sp.q);
   const kategorija = param(sp.kategorija);
+  const podkategorija = param(sp.podkategorija);
   const status = param(sp.status);
   const zaliha = param(sp.zaliha);
   const page = pageParam(sp.strana);
   const [data, options] = await Promise.all([
     listProducts({
       q,
-      categoryId: Number(kategorija) || undefined,
+      categoryId: Number(podkategorija) || Number(kategorija) || undefined,
       status: STATUSES.includes(status as ProductStatus) ? (status as ProductStatus) : undefined,
       stock: zaliha === "out" || zaliha === "low" ? zaliha : undefined,
       page,
@@ -35,22 +38,12 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
   return (
     <>
       <PageTitle intro={t("count", { count: data.total })}>{t("title")}</PageTitle>
-      <form method="get" className="mb-6 grid items-end gap-3 md:grid-cols-[2fr_2fr_1fr_1fr_auto]">
+      <FilterForm className="mb-6 grid items-end gap-3 md:grid-cols-[2fr_1.5fr_1.5fr_1fr_1fr]">
         <label className={label}>
           {c("search")}
           <input name="q" defaultValue={q} placeholder={t("searchHint")} className={`${FIELD_CLASS} mt-1`} />
         </label>
-        <label className={label}>
-          {t("category")}
-          <select name="kategorija" defaultValue={kategorija} className={`${FIELD_CLASS} mt-1`}>
-            <option value="">{t("allCategories")}</option>
-            {options.categories.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <CategoryFilter tree={options.categoryTree} category={kategorija} subcategory={podkategorija} />
         <label className={label}>
           {t("status")}
           <select name="status" defaultValue={status} className={`${FIELD_CLASS} mt-1`}>
@@ -70,13 +63,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
             <option value="low">{t("stockLow")}</option>
           </select>
         </label>
-        <button
-          type="submit"
-          className="h-[38px] rounded-[2px] border border-[var(--accent)] px-4 font-ui text-sm text-[var(--accent-bright)]"
-        >
-          {c("filter")}
-        </button>
-      </form>
+      </FilterForm>
       {data.rows.length === 0 ? (
         <p className="text-[var(--text-muted)]">{c("empty")}</p>
       ) : (
@@ -124,7 +111,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Sea
         pathname="/admin/artikli"
         page={page}
         pages={data.pages}
-        query={activeQuery({ q, kategorija, status, zaliha })}
+        query={activeQuery({ q, kategorija, podkategorija, status, zaliha })}
       />
     </>
   );
