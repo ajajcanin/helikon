@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:local": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
+    "build": "prisma generate --no-hints && next build",
+    "build:local": "prisma generate --no-hints && node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
     "start": "next start",
     "start:local": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next start",
     "lint": "biome check .",
