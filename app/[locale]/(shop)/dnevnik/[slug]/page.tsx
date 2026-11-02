@@ -11,7 +11,7 @@ import {
 } from "@/features/content/article-content";
 import { ArticleBody } from "@/features/content/components/ArticleBody";
 import { Link } from "@/i18n/navigation";
-import { mediaUrl } from "@/lib/media";
+import { hasMediaStorage, mediaUrl } from "@/lib/media";
 import { getPublishedArticle } from "@/server/content";
 import { listProductsForArticle } from "@/server/public/catalog";
 
@@ -21,7 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const article = await getPublishedArticle((await params).slug);
   if (!article) return {};
   const image =
-    article.coverKey && article.coverWidth ? mediaUrl(article.coverKey, article.coverWidth, 1024) : undefined;
+    hasMediaStorage() && article.coverKey && article.coverWidth
+      ? mediaUrl(article.coverKey, article.coverWidth, 1024)
+      : undefined;
   return {
     title: `${article.title} · Helikon`,
     description: article.excerpt ?? undefined,

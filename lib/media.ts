@@ -7,15 +7,22 @@ export function storedWidths(width: number): number[] {
   return widths.length ? widths : [width];
 }
 
+/** Shown when storage isn't set up, or an image's file is missing from it. */
+export const MEDIA_PLACEHOLDER = "/images/media-placeholder.svg";
+
+export const hasMediaStorage = () => Boolean(process.env.NEXT_PUBLIC_MEDIA_URL);
+
 const url = (key: string, width: number) => `${process.env.NEXT_PUBLIC_MEDIA_URL}/${key}/${width}.webp`;
 
 /** The smallest stored size that is at least `want` wide, or the largest there is. */
 export function mediaUrl(key: string, width: number, want: number): string {
+  if (!hasMediaStorage()) return MEDIA_PLACEHOLDER;
   const widths = storedWidths(width);
   return url(key, widths.find((w) => w >= want) ?? widths[widths.length - 1] ?? width);
 }
 
-export function mediaSrcSet(key: string, width: number): string {
+export function mediaSrcSet(key: string, width: number): string | undefined {
+  if (!hasMediaStorage()) return undefined;
   return storedWidths(width)
     .map((w) => `${url(key, w)} ${w}w`)
     .join(", ");
