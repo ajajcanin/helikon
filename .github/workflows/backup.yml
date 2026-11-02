@@ -1,0 +1,27 @@
+# Nightly database dump to a private R2 bucket: a copy outside Neon that goes back further than its restore window.
+# Off until the repository variable BACKUPS_ENABLED is "true". Delete old dumps with a lifecycle rule on the bucket.
+name: Database backup
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    if: vars.BACKUPS_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install pg_dump 17
+        run: |
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-17
+      - name: Dump and upload
+        env:
+          DIRECT_URL: ${{ secrets.DIRECT_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+        run: |
+          FILE="helikon-$(date -u +%Y-%m-%d).dump"
+          /usr/lib/postgresql/17/bin/pg_dump --format=custom --no-owner --file="$FILE" "$DIRECT_URL"
+          aws s3 cp "$FILE" "s3://${{ secrets.BACKUP_S3_BUCKET }}/$FILE" --endpoint-url "${{ secrets.BACKUP_S3_ENDPOINT }}"

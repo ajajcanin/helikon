@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/* Vault theme - trimmed from the design system's color/lighting/motion tokens,
+   scoped to what the coming-soon page actually renders. */
+:root {
+  --bg-page: #17140f;
+  --bg-well: #100d09;
+  --surface-sunk: #211b15;
+  --surface-card: #26201a;
+  --surface-raised: #302820;
+
+  --text-display: #ede3d0;
+  --text-secondary: #b7a98c;
+  --text-muted: #8a7e67;
+  --text-on-accent: #17140f;
+
+  --accent: #b8905a;
+  --accent-bright: #d4af7a;
+  --accent-active: #8f6e3f;
+  --accent-subtle: rgba(184, 144, 90, 0.1);
+
+  --border-subtle: #2c251d;
+  --border-strong: #3d342a;
+  --border-hover: #8a7e67;
+  --border-brass: rgba(184, 144, 90, 0.4);
+
+  --error: #bc5f4c;
+  --success: #7a8259;
+  --warning: #c9873b;
+  --focus-ring: #d4af7a;
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.28, 1);
+  --ease-in-out-soft: cubic-bezier(0.5, 0.05, 0.2, 1);
+  --ease-settle: cubic-bezier(0.34, 0.7, 0.2, 1);
+  --duration-base: 340ms;
+  --duration-slow: 520ms;
+
+  --hairline-rule: linear-gradient(
+    90deg,
+    transparent,
+    rgba(184, 144, 90, 0.5) 20%,
+    rgba(184, 144, 90, 0.5) 80%,
+    transparent
+  );
+  --glow-pool-strong: radial-gradient(
+    55% 60% at 50% 40%,
+    rgba(232, 168, 92, 0.2),
+    rgba(232, 168, 92, 0) 70%
+  );
+  --bloom-brass: 0 0 0 1px rgba(184, 144, 90, 0.35), 0 6px 26px rgba(232, 168, 92, 0.22);
+  --bloom-soft: 0 8px 34px rgba(232, 168, 92, 0.16);
+  --shadow-card: 0 1px 2px rgba(8, 5, 2, 0.5), 0 10px 30px rgba(8, 5, 2, 0.45);
+  --glow-pool: radial-gradient(60% 65% at 50% 32%, rgba(232, 168, 92, 0.12), rgba(232, 168, 92, 0) 72%);
+  --glow-edge: radial-gradient(120% 90% at 50% -10%, rgba(232, 168, 92, 0.1), rgba(232, 168, 92, 0) 60%);
+}
+
+/* Gallery: the light variant the design system foresees, on its warm parchment palette. Used by the admin. */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-page: #f6f1e8;
+  --bg-well: #fffdf8;
+
+  --text-display: #2c251d;
+  --text-secondary: #5a5040;
+  --text-muted: #6b6050;
+  --text-on-accent: #fffdf8;
+
+  --accent: #8f6e3f;
+  --accent-bright: #765829;
+  --accent-active: #5f4620;
+  --accent-subtle: rgba(143, 110, 63, 0.1);
+
+  --border-subtle: #e0d6c3;
+  --border-strong: #93866d;
+  --border-hover: #5a5040;
+  --border-brass: rgba(143, 110, 63, 0.4);
+
+  --error: #a03d2b;
+  --focus-ring: #765829;
+
+  --bloom-brass: 0 0 0 1px rgba(143, 110, 63, 0.35);
+  --bloom-soft: 0 4px 16px rgba(44, 37, 29, 0.12);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-display: var(--font-cinzel);
+  --font-body: var(--font-eb-garamond);
+  --font-ui: var(--font-inter);
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-display);
+}
+
+::selection {
+  background: var(--accent-subtle);
+  color: var(--text-display);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@keyframes seal-in {
+  0% {
+    opacity: 0;
+    transform: scale(1.18) rotate(-6deg);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes breathe {
+  from {
+    opacity: 0.72;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes star-breathe {
+  from {
+    filter: drop-shadow(0 0 2px rgba(232, 168, 92, 0.5))
+      drop-shadow(0 0 14px rgba(232, 168, 92, 0.22))
+      drop-shadow(0 0 36px rgba(232, 168, 92, 0.1));
+  }
+  to {
+    filter: drop-shadow(0 0 2px rgba(232, 168, 92, 0.72))
+      drop-shadow(0 0 22px rgba(232, 168, 92, 0.4))
+      drop-shadow(0 0 54px rgba(232, 168, 92, 0.2));
+  }
+}
+
+.animate-seal-in {
+  animation: seal-in 1100ms var(--ease-settle) both;
+}
+.animate-rise {
+  animation: rise 900ms var(--ease-out-soft) both;
+}
+.animate-rise-delay-1 {
+  animation: rise 900ms var(--ease-out-soft) 160ms both;
+}
+.animate-rise-delay-2 {
+  animation: rise 900ms var(--ease-out-soft) 320ms both;
+}
+.animate-rise-delay-3 {
+  animation: rise 900ms var(--ease-out-soft) 480ms both;
+}
+.animate-glow {
+  animation: breathe 7s var(--ease-in-out-soft) infinite alternate;
+}
+.star-glow {
+  filter: drop-shadow(0 0 2px rgba(232, 168, 92, 0.6))
+    drop-shadow(0 0 18px rgba(232, 168, 92, 0.34))
+    drop-shadow(0 0 44px rgba(232, 168, 92, 0.16));
+  animation:
+    seal-in 1100ms var(--ease-settle) both,
+    star-breathe 6.5s var(--ease-in-out-soft) 1100ms infinite alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Shop: small pieces repeated across pages, from the design export. */
+.hk-eyebrow {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hk-rule {
+  height: 1px;
+  border: 0;
+  background: var(--hairline-rule);
+}
+
+.hk-swatch {
+  position: relative;
+  background:
+    radial-gradient(120% 120% at 30% 20%, rgba(237, 227, 208, 0.05), rgba(237, 227, 208, 0) 60%), var(--surface-sunk);
+}
+
+.hk-swatch rect {
+  filter: url(#hk-smear);
+}

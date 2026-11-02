@@ -1,45 +1,50 @@
-# Helikon - coming-soon page
+# Helikon
 
-Next.js (App Router, TypeScript, Tailwind CSS) coming-soon page for Helikon,
-a Sarajevo art-supplies shop. Root `/` renders the page; `/api/subscribe`
-stores email signups as Resend contacts.
+Website and shop for Helikon, a Sarajevo art-supplies shop. Decisions and the build plan are in
+[docs/architecture.md](docs/architecture.md), and environments in [docs/deployment.md](docs/deployment.md).
 
 ## Develop
 
+Needs Node 24 and Docker Desktop.
+
 ```bash
-pnpm install
-pnpm dev
+./setup.sh --start        # first run: .env, Docker, packages, migrations, your admin user, then the app
+pnpm lefthook install     # once: pre-commit checks and commit message rules
 ```
+
+Local services: Postgres on 5435, Mailpit on http://localhost:8026, an S3 server on 9100 standing in for R2.
+Admin login: http://localhost:3000/admin.
 
 ## Scripts
 
-- `pnpm dev` - start the dev server
-- `pnpm build` - production build
-- `pnpm start` - run the production build
-- `pnpm lint` - ESLint (fails on warnings)
-- `pnpm format` / `pnpm format:check` - Prettier
-- `pnpm typecheck` - `tsc --noEmit`
+- `pnpm dev`, `pnpm build`, `pnpm start` - the app
+- `pnpm lint`, `pnpm format` - Biome
+- `pnpm typecheck` - generate route types, then `tsc --noEmit`
+- `pnpm test` - unit and database tests, against a separate test database
+- `pnpm storybook` - component workbench on port 6007
+- `pnpm db:migrate`, `pnpm db:migrate:dev`, `pnpm db:studio` - database
+- `pnpm db:import "<file.xlsx>" [--dry-run] [--reclassify]` - import the supplier sheet; `--reclassify` re-applies
+  the category rules to existing products, replacing manual changes
+- `pnpm db:dev-publish` - local preview only: publish everything and add sample delivery prices
+- `pnpm user:create` - create a staff user
 
 ## Environment
 
-Copy `.env.example` to `.env.local` and fill in:
-
-- `RESEND_API_KEY` - Resend API key (contacts-only; no email is ever sent)
-- `RESEND_AUDIENCE_ID` - the Resend Audience to add signups to
-- `NEXT_PUBLIC_SITE_URL` - used for absolute Open Graph/Twitter image URLs
-
-## Brand assets
-
-- Favicon: `src/app/icon.svg` (the brand star mark), picked up automatically
-  by Next's file-based icon convention, plus `public/favicon.ico` for
-  broader compatibility.
-- Share preview: `public/images/og-image.jpg` - 1200×630, referenced in
-  `src/app/layout.tsx`. Built from the same star mark and wordmark used in
-  the site header.
+Every setting is explained in `.env.example`. `server/env.ts` validates them at startup. Before deploying, read
+"Before this reaches production" in [docs/architecture.md](docs/architecture.md).
 
 ## Structure
 
-`src/components/` follows atomic design as a convention, not a mandate - see
-[src/components/README.md](src/components/README.md). Only the pieces the
-coming-soon page renders exist; other page designs from the design export
-stay out of the build until they're built for real.
+| Folder        | Holds                                                              |
+| ------------- | ------------------------------------------------------------------ |
+| `app/`        | Routes only                                                        |
+| `features/`   | One folder per business area, with its components and logic        |
+| `components/` | Shared UI layers, see [components/README.md](components/README.md) |
+| `server/`     | Server-only code: env, email and later database, jobs, storage     |
+| `styles/`     | Global CSS and Vault tokens                                        |
+| `docs/`       | Decisions and plan                                                 |
+
+## Brand assets
+
+- Favicon: `app/icon.svg`, picked up by Next's file-based icon convention, plus `public/favicon.ico`.
+- Share preview: `public/images/og-image.jpg` (1200×630), referenced in `app/[locale]/layout.tsx`.

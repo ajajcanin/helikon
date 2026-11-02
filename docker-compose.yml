@@ -1,0 +1,38 @@
+# Local services only: the app runs on the host (pnpm dev). Ports differ from Haen so both can run together.
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: helikon
+      POSTGRES_PASSWORD: helikon
+      POSTGRES_DB: helikon
+    ports:
+      - "5435:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helikon"]
+      interval: 5s
+      retries: 10
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8026:8025" # web UI: http://localhost:8026
+      - "1026:1025" # SMTP
+
+  # Stands in for Cloudflare R2 locally: same S3 API.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    restart: unless-stopped
+    command: server -s3 -dir=/data
+    ports:
+      - "9100:8333"
+    volumes:
+      - s3data:/data
+
+volumes:
+  pgdata:
+  s3data:

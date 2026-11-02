@@ -1,0 +1,13 @@
+# Runs on the developer's machine. Install once with: pnpm lefthook install
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{js,ts,tsx,json,css}"
+      run: pnpm biome check --no-errors-on-unmatched {staged_files}
+    typecheck:
+      run: pnpm typecheck
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm commitlint --edit {1}

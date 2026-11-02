@@ -1,0 +1,140 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "includes": ["**", "!.next", "!memorandum", "!Helikon webshop design", "!**/*.css", "!**/*.svg"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 110
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "always",
+      "trailingCommas": "all"
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "preset": "recommended",
+      "a11y": {
+        "useSemanticElements": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["components/molecules/**", "components/organisms/**", "features/**", "app/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "radix-ui": "Radix is used only inside components/atoms. Use our atoms instead.",
+                  "sonner": "Use the Toast atom (components/atoms/Toast).",
+                  "lucide-react": "Use the Icon atom (components/atoms/Icon)."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/atoms/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/molecules/**", "@/components/organisms/**", "@/features/**"],
+                    "message": "Atoms import nothing above them."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/molecules/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "radix-ui": "Radix is used only inside components/atoms.",
+                  "sonner": "Use the Toast atom.",
+                  "lucide-react": "Use the Icon atom."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/components/organisms/**", "@/features/**"],
+                    "message": "Molecules import only atoms."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["components/organisms/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "paths": {
+                  "radix-ui": "Radix is used only inside components/atoms.",
+                  "sonner": "Use the Toast atom.",
+                  "lucide-react": "Use the Icon atom."
+                },
+                "patterns": [
+                  {
+                    "group": ["@/features/**"],
+                    "message": "Organisms import only atoms and molecules."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+# Manual: Actions > "Deploy to production" > Run workflow. This is the only way code reaches helikon.ba.
+# Vercel's production branch is `main`, so moving it to develop's latest commit deploys that commit.
+name: Deploy to production
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "deploy" to put what is on dev onto helikon.ba'
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/develop' && inputs.confirm == 'deploy'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply database migrations
+        run: pnpm db:migrate
+        env:
+          DIRECT_URL: ${{ secrets.PRODUCTION_DIRECT_URL }}
+      - name: Deploy
+        run: git push origin HEAD:refs/heads/main
