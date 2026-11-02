@@ -235,7 +235,8 @@
     "pdvNumber": "PDV broj",
     "orderEmail": "E-pošta za nove narudžbe",
     "invoiceNote": "Napomena na računu",
-    "openingHours": "Radno vrijeme (svaki red zasebno)"
+    "openingHours": "Radno vrijeme (svaki red zasebno)",
+    "mapQuery": "Lokacija na Google mapi (naziv i adresa)"
   },
   "history": {
     "title": "Historija promjena",
@@ -450,7 +451,10 @@
     "allProducts": "Svi proizvodi",
     "allCategoriesLink": "Pogledaj sve",
     "journalTitle": "Bilješke iz radionice",
-    "about": "O nama"
+    "about": "O nama",
+    "mapTitle": "Lokacija radnje Helikon na Google mapi",
+    "directions": "Upute do radnje",
+    "openInMaps": "Otvori u Google Maps"
   },
   "content": {
     "title": "Stranice i početna",

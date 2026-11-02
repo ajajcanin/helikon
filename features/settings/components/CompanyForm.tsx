@@ -70,6 +70,12 @@ export function CompanyForm({ initial }: { initial: CompanySettings }) {
           value={form.invoiceNote}
           onChange={(e) => setForm({ ...form, invoiceNote: e.target.value })}
         />
+        <Input
+          className="md:col-span-2"
+          label={t("mapQuery")}
+          value={form.mapQuery}
+          onChange={(e) => setForm({ ...form, mapQuery: e.target.value })}
+        />
         <div className="md:col-span-2">
           <label htmlFor="opening-hours" className="mb-1 block font-ui text-xs text-[var(--text-secondary)]">
             {t("openingHours")}

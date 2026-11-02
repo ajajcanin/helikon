@@ -20,6 +20,8 @@ export const companySchema = z.object({
   orderEmail: z.string().trim().max(254),
   invoiceNote: z.string().trim().max(500),
   openingHours: z.string().trim().max(500),
+  /** What Google Maps searches for, for the pin and directions: best as business name and address. */
+  mapQuery: z.string().trim().max(200),
 });
 
 export type CompanySettings = z.infer<typeof companySchema>;
@@ -41,6 +43,7 @@ const DEFAULTS: CompanySettings = {
   orderEmail: "info@helikon.ba",
   invoiceNote: "Firma nije u sistemu PDV-a.",
   openingHours: "",
+  mapQuery: "Helikon, Fra Anđela Zvizdovića 8, Sarajevo",
 };
 
 export async function getCompanySettings(): Promise<CompanySettings> {

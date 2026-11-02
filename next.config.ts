@@ -10,7 +10,7 @@ const mediaOrigin = process.env.NEXT_PUBLIC_MEDIA_URL
 
 /**
  * Content-Security-Policy: own site + Google Analytics (only loads when NEXT_PUBLIC_GA_MEASUREMENT_ID is set) +
- * Turnstile + product photos and admin uploads on object storage. Add new services here. Vercel already sends Strict-Transport-Security.
+ * Turnstile + the Google map on the contact page + product photos and admin uploads on object storage. Add new services here. Vercel already sends Strict-Transport-Security.
  */
 const csp = [
   "default-src 'self'",
@@ -19,7 +19,7 @@ const csp = [
   `img-src 'self' data: blob: https://www.googletagmanager.com https://*.google-analytics.com ${mediaOrigin}`,
   "font-src 'self'",
   `connect-src 'self'${isDev ? " ws:" : ""} https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://challenges.cloudflare.com https://*.r2.cloudflarestorage.com ${mediaOrigin}`,
-  "frame-src https://challenges.cloudflare.com",
+  "frame-src https://challenges.cloudflare.com https://www.google.com https://maps.google.com",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

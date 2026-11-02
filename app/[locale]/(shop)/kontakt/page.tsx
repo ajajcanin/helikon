@@ -5,6 +5,7 @@ export default async function ContactPage() {
   const [t, company] = await Promise.all([getTranslations("shop"), getCompanySettings()]);
   const heading = "mb-3 font-ui text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]";
   const hours = company.openingHours.split("\n").filter(Boolean);
+  const query = encodeURIComponent(company.mapQuery);
   return (
     <div className="mx-auto max-w-[1000px] px-6 pt-12 pb-[88px]">
       <span className="hk-eyebrow">{t("contactEyebrow")}</span>
@@ -47,6 +48,35 @@ export default async function ContactPage() {
           </p>
         </div>
       </div>
+      {company.mapQuery && (
+        <section className="mt-10">
+          <iframe
+            title={t("mapTitle")}
+            src={`https://www.google.com/maps?q=${query}&output=embed`}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            className="block h-[420px] w-full border border-[var(--border-subtle)] max-md:h-[320px]"
+          />
+          <div className="mt-4 flex flex-wrap gap-3">
+            <a
+              href={`https://www.google.com/maps/dir/?api=1&destination=${query}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center justify-center rounded-[2px] bg-[var(--accent)] px-6 font-ui text-sm font-semibold tracking-[0.08em] text-[var(--text-on-accent)] hover:bg-[var(--accent-bright)]"
+            >
+              {t("directions")}
+            </a>
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${query}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-12 items-center justify-center rounded-[2px] border border-[var(--border-brass)] px-6 font-ui text-sm tracking-[0.08em] text-[var(--accent-bright)] hover:border-[var(--accent)]"
+            >
+              {t("openInMaps")}
+            </a>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
