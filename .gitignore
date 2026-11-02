@@ -44,11 +44,15 @@ next-env.d.ts
 # design source (reference only, not part of the build)
 /Helikon webshop design/
 
-# supplier price sheet: purchase prices and margins, never commit
-/Opcija 1 dokument sa slikama za web shop.xlsx
+# supplier price sheets: purchase prices and margins, never commit
+*.xlsx
+
+# business documents with company details, kept outside the repository
+/memorandum/
 
 # generated Prisma client
 /generated/
 
 # storybook
 /storybook-static/
+.neon

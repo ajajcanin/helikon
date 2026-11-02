@@ -3,7 +3,6 @@
  * Creates an admin user from the terminal (the very first Administrator). Nothing is exposed on the web.
  * Non-interactive: pnpm user:create --name "Ime" --email a@b.ba --password "…" --role ADMINISTRATOR
  */
-import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { stdin as input, stdout as output } from "node:process";
 import readline from "node:readline/promises";

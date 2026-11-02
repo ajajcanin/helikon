@@ -12,7 +12,8 @@ Needs Node 24 and Docker Desktop.
 pnpm lefthook install     # once: pre-commit checks and commit message rules
 ```
 
-Local services: Postgres on 5435, Mailpit on http://localhost:8026, an S3 server on 9100 standing in for R2.
+The database is Neon's `development` branch, set in `.env.development`. Docker runs a separate test database on 5435,
+Mailpit on http://localhost:8026, and an S3 server on 9100 standing in for R2.
 Admin login: http://localhost:3000/admin.
 
 ## Scripts
@@ -25,12 +26,12 @@ Admin login: http://localhost:3000/admin.
 - `pnpm db:migrate`, `pnpm db:migrate:dev`, `pnpm db:studio` - database
 - `pnpm db:import "<file.xlsx>" [--dry-run] [--reclassify]` - import the supplier sheet; `--reclassify` re-applies
   the category rules to existing products, replacing manual changes
-- `pnpm db:dev-publish` - local preview only: publish everything and add sample delivery prices
+- `pnpm db:dev-publish` - development only: publish everything and add sample delivery prices
 - `pnpm user:create` - create a staff user
 
 ## Environment
 
-Every setting is explained in `.env.example`. `server/env.ts` validates them at startup. Before deploying, read
+Every setting is explained in `.env.example`, and they all live in one file, `.env.development`. `server/env.ts` validates them at startup. Before deploying, read
 "Before this reaches production" in [docs/architecture.md](docs/architecture.md).
 
 ## Structure

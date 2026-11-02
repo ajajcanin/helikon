@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!.next", "!memorandum", "!Helikon webshop design", "!**/*.css", "!**/*.svg"]
+    "includes": [
+      "**",
+      "!.next",
+      "!memorandum",
+      "!Helikon webshop design",
+      "!**/*.css",
+      "!**/*.svg",
+      "!pnpm-lock.yaml"
+    ]
   },
   "formatter": {
     "enabled": true,

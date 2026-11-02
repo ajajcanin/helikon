@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { config } from "dotenv";
 import { defineConfig } from "vitest/config";
 
-config({ quiet: true });
+config({ path: ".env.development", quiet: true });
 const root = path.resolve(import.meta.dirname);
 
 export default defineConfig({

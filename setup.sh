@@ -3,7 +3,7 @@
 #
 #   ./setup.sh           first run, or re-run any time: steps already done are skipped
 #   ./setup.sh --start   same, then starts the app (pnpm dev)
-#   ./setup.sh --fresh   deletes the local database and uploads (asks first)
+#   ./setup.sh --fresh   deletes the local test database and uploads (asks first)
 #
 # Needs: Node 24, Docker Desktop (running). pnpm is enabled through Corepack if missing.
 set -euo pipefail
@@ -35,19 +35,19 @@ command -v docker >/dev/null || fail "Docker nije instaliran. Instaliraj Docker 
 docker info >/dev/null 2>&1 || fail "Docker ne radi. Pokreni Docker Desktop pa ponovo ./setup.sh"
 ok "Node $(node -v), pnpm $(pnpm -v), Docker"
 
-bold "2/6 .env"
-if [ ! -f .env ]; then
+bold "2/6 .env.development"
+if [ ! -f .env.development ]; then
   SECRET=$(openssl rand -base64 32 | tr -d '\n/+=')
   # macOS and Linux sed differ in -i; write through a temp file instead
-  sed "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=\"$SECRET\"|" .env.example > .env.tmp && mv .env.tmp .env
-  ok ".env napravljen iz .env.example (sa novim BETTER_AUTH_SECRET)"
+  sed "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=\"$SECRET\"|" .env.example > .env.tmp && mv .env.tmp .env.development
+  ok ".env.development napravljen iz .env.example (upiši DATABASE_URL i DIRECT_URL iz Neona)"
 else
-  ok ".env već postoji (ne mijenjam ga)"
+  ok ".env.development već postoji (ne mijenjam ga)"
 fi
 
 bold "3/6 Postgres, Mailpit i S3 (Docker)"
 if $FRESH; then
-  printf "  Ovo BRIŠE lokalnu bazu i slike. Upiši 'obrisi' za nastavak: "
+  printf "  Ovo BRIŠE lokalnu test bazu i slike. Upiši 'obrisi' za nastavak: "
   read -r answer
   [ "$answer" = "obrisi" ] || fail "Prekinuto. Ništa nije obrisano."
   docker compose down -v
@@ -66,12 +66,6 @@ pnpm -s db:migrate
 ok "Tabele spremne"
 
 bold "6/6 Admin korisnik"
-USERS=$(psql_db helikon 'select count(*) from "user"' || echo 0)
-if [ "${USERS:-0}" != "0" ]; then
-  ok "Korisnici već postoje ($USERS). Novi: pnpm user:create"
-else
-  echo "  Napravi svoj admin nalog (uloga ADMINISTRATOR):"
-  pnpm -s user:create
-fi
+echo "  Prvi put napravi svoj admin nalog: pnpm user:create"
 
 if $START; then pnpm dev; fi

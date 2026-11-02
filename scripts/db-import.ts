@@ -4,7 +4,6 @@
  * the difference. New products start as DRAFT: nothing is public until staff review it and add photos.
  * --reclassify re-applies classify.ts and product-details.ts to existing products, except confirmed ones.
  */
-import "dotenv/config";
 import { Decimal } from "decimal.js";
 import ExcelJS from "exceljs";
 import { classifyProduct, FALLBACK_CATEGORY, namesColour } from "@/features/catalog/classify";

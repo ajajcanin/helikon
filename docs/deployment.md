@@ -18,6 +18,12 @@ additive: add first, remove in a later release.
 
 **The first run of the action is the launch.** It replaces the coming-soon page with the shop.
 
+## Local development
+
+Everything lives in one file, `.env.development` (git-ignored, see `.env.example`): the app, Prisma and the scripts all
+read it, and it points at Neon's `development` branch. Docker provides only Mailpit, the S3 server and a separate database
+for tests, so tests can never touch Neon.
+
 ## Set up once
 
 Production keeps serving the coming-soon page throughout, because `main` doesn't change until the first manual deploy.
@@ -25,12 +31,11 @@ Production keeps serving the coming-soon page throughout, because `main` doesn't
 1. **GitHub > Settings > General:** make `develop` the default branch. GitHub only offers a manual action whose file is
    on the default branch.
 2. **GitHub > Settings > Branches:** protect `main` so only the action can update it, and allow the action past the rule.
-3. **Neon:** one project in Frankfurt with a `production` branch and a `dev` branch. Each has a pooled and a direct URL.
+3. **Neon:** project `helikon` with branch `development` is the dev database. Production gets its own Neon project later.
 4. **Vercel > Settings > Environment Variables**, in the existing project:
-   - Preview, for all branches or `develop` only: `DATABASE_URL` (dev pooled), `DIRECT_URL`, a `BETTER_AUTH_SECRET`
-     different from production's, `APP_URL` set to the branch URL Vercel shows for `develop`, and `CRON_SECRET`. Leave
-     `RESEND_API_KEY` out unless dev should send real e-mail.
-   - Production: `DATABASE_URL` (production pooled), `DIRECT_URL`, `BETTER_AUTH_SECRET`, `APP_URL=https://helikon.ba`,
+   - Preview, for all branches or `develop` only: `DATABASE_URL`, `DIRECT_URL` and `BETTER_AUTH_SECRET` from `.env.development`, `APP_URL` set to the branch URL Vercel shows for `develop`, and `CRON_SECRET`. Also `NEXT_PUBLIC_SITE_URL`, the same URL.
+     Nothing from production: no Resend, no analytics. Without them dev sends no e-mail and tracks nothing.
+   - Production, later: `DATABASE_URL`, `DIRECT_URL` and a different `BETTER_AUTH_SECRET` from its own Neon project, `APP_URL=https://helikon.ba`,
      `CRON_SECRET`, `RESEND_API_KEY`, and analytics.
 5. **Vercel > Settings > Deployment Protection:** keep dev private. It has an admin panel and test data. Pages outside
    production also ask search engines not to index.
@@ -40,6 +45,9 @@ Production keeps serving the coming-soon page throughout, because `main` doesn't
 
 To use `dev.helikon.ba` later: Vercel > Settings > Domains, add it to Preview with Git branch `develop`, add the DNS
 record in Cloudflare, and change `APP_URL`.
+
+Check that existing Resend and analytics variables in Vercel are scoped to Production only. A variable set for all
+environments would reach dev too.
 
 ## Before the first production deploy
 

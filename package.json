@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
+    "start": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next start",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "next typegen && tsc --noEmit",
@@ -17,10 +17,10 @@
     "db:migrate:dev": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:studio": "prisma studio",
-    "db:import": "tsx --import ./scripts/no-server-only.mjs scripts/db-import.ts",
-    "user:create": "tsx --import ./scripts/no-server-only.mjs scripts/user-create.ts",
+    "db:import": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/db-import.ts",
+    "user:create": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/user-create.ts",
     "postinstall": "prisma generate --no-hints || true",
-    "db:dev-publish": "tsx --import ./scripts/no-server-only.mjs scripts/dev-publish.ts"
+    "db:dev-publish": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/dev-publish.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1161.0",
@@ -51,6 +51,7 @@
     "@biomejs/biome": "2.6.3",
     "@commitlint/cli": "21.2.4",
     "@commitlint/config-conventional": "21.2.4",
+    "@neon/config": "1.10.0",
     "@storybook/addon-a11y": "10.6.5",
     "@storybook/nextjs-vite": "10.6.5",
     "@tailwindcss/postcss": "4.3.3",
