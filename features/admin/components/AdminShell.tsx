@@ -47,6 +47,13 @@ export function AdminShell({
       ],
     },
     {
+      title: t("groupContent"),
+      items: [
+        { href: "/admin/sadrzaj", label: t("navContent"), icon: "content" },
+        { href: "/admin/dnevnik", label: t("navJournal"), icon: "journal" },
+      ],
+    },
+    {
       title: t("groupSystem"),
       items: [
         { href: "/admin/integracije", label: t("navIntegrations"), icon: "integrations" },

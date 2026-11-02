@@ -4,9 +4,12 @@ import { Link } from "@/i18n/navigation";
 type Props = {
   categories: { slug: string; name: string }[];
   company: { legalName: string; address: string; city: string; phone: string; email: string };
+  /** Content pages that have text */
+  pages: { slug: string; title: string }[];
+  hasJournal: boolean;
 };
 
-export function ShopFooter({ categories, company }: Props) {
+export function ShopFooter({ categories, company, pages, hasJournal }: Props) {
   const t = useTranslations("shop");
   const heading = "mb-3.5 font-ui text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]";
   const link = "font-body text-base text-[var(--text-secondary)] hover:text-[var(--accent-bright)]";
@@ -48,6 +51,16 @@ export function ShopFooter({ categories, company }: Props) {
           <Link href="/kontakt" className={`${link} mt-3 block`}>
             {t("contact")}
           </Link>
+          {hasJournal && (
+            <Link href="/dnevnik" className={`${link} block`}>
+              {t("journal")}
+            </Link>
+          )}
+          {pages.map((page) => (
+            <Link key={page.slug} href={`/${page.slug}`} className={`${link} block`}>
+              {page.title}
+            </Link>
+          ))}
         </div>
       </div>
       <div className="mx-auto max-w-[1200px] px-6">

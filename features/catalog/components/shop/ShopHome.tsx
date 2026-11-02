@@ -3,7 +3,8 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import interior from "@/public/images/shop-interior.png";
 import storefront from "@/public/images/shop-storefront.png";
-import { listCategoryTree, listPublishedProducts } from "@/server/public/catalog";
+import { getHomeContent } from "@/server/content";
+import { listCategoryTree, listPublishedBySku, listPublishedProducts } from "@/server/public/catalog";
 import { ProductCard, ProductGrid } from "./ProductCard";
 
 const PRIMARY =
@@ -13,10 +14,11 @@ const SECONDARY =
 
 export async function ShopHome() {
   const t = await getTranslations("shop");
-  const [tree, featured] = await Promise.all([
-    listCategoryTree(),
-    listPublishedProducts({ categorySlug: "metalik-boje", inStock: true, take: 4 }),
-  ]);
+  const [tree, content] = await Promise.all([listCategoryTree(), getHomeContent()]);
+  const skus = content.featuredSkus.split(/[\s,]+/).filter(Boolean);
+  const featured = skus.length
+    ? await listPublishedBySku(skus)
+    : await listPublishedProducts({ categorySlug: "metalik-boje", inStock: true, take: 4 });
   const first = tree[0];
   const count = (c: (typeof tree)[number]) =>
     c._count.products + c.children.reduce((sum, child) => sum + child._count.products, 0);
@@ -27,14 +29,18 @@ export async function ShopHome() {
       <section className="relative overflow-hidden border-b border-[var(--border-subtle)] bg-[image:var(--glow-edge)]">
         <div className="mx-auto grid max-w-[1200px] items-center gap-8 px-6 md:min-h-[520px] md:grid-cols-[1.1fr_0.9fr]">
           <div className="relative z-10 py-14 md:py-20">
-            <span className="hk-eyebrow">{t("heroEyebrow")}</span>
+            <span className="hk-eyebrow">{content.eyebrow}</span>
             <h1 className="mt-5 font-display text-[46px] leading-[1.05] font-semibold tracking-[0.06em] text-[var(--text-display)] uppercase md:text-[62px]">
-              {t("heroFirst")}
-              <br />
-              {t("heroSecond")}
+              {content.titleFirst}
+              {content.titleSecond && (
+                <>
+                  <br />
+                  {content.titleSecond}
+                </>
+              )}
             </h1>
             <p className="mt-5 max-w-[44ch] font-body text-[19px] leading-relaxed text-[var(--text-secondary)]">
-              {t("heroText")}
+              {content.text}
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {first && (
@@ -63,9 +69,9 @@ export async function ShopHome() {
 
       <section className="mx-auto max-w-[1200px] px-6 pt-16 pb-2">
         <span className="hk-eyebrow">{t("shelvesEyebrow")}</span>
-        <h2 className={`${heading} mt-2.5 mb-1.5`}>{t("shelvesTitle")}</h2>
+        <h2 className={`${heading} mt-2.5 mb-1.5`}>{content.shelvesTitle}</h2>
         <p className="mb-7 max-w-[56ch] font-body text-[17px] text-[var(--text-secondary)]">
-          {t("shelvesText")}
+          {content.shelvesText}
         </p>
         <div className="grid grid-cols-2 border-t border-l border-[var(--border-subtle)] lg:grid-cols-4">
           {tree.map((c) => (
@@ -90,14 +96,14 @@ export async function ShopHome() {
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
               <span className="hk-eyebrow">{t("featuredEyebrow")}</span>
-              <h2 className={`${heading} mt-2.5`}>{t("featuredTitle")}</h2>
+              <h2 className={`${heading} mt-2.5`}>{content.featuredTitle}</h2>
             </div>
             {first && (
               <Link
                 href={`/kategorija/${first.slug}`}
                 className="font-ui text-xs tracking-[0.2em] text-[var(--accent-bright)] uppercase"
               >
-                {t("allPaints")}
+                {t("allCategoriesLink")} →
               </Link>
             )}
           </div>
@@ -114,10 +120,10 @@ export async function ShopHome() {
           <div className="p-8 md:p-11">
             <span className="hk-eyebrow">{t("visitEyebrow")}</span>
             <h2 className="mt-3 mb-2.5 font-display text-[28px] font-medium tracking-[0.04em] text-[var(--text-display)]">
-              {t("visitTitle")}
+              {content.visitTitle}
             </h2>
             <p className="mb-6 font-body text-[17px] leading-relaxed text-[var(--text-secondary)]">
-              {t("visitText")}
+              {content.visitText}
             </p>
             <Link href="/kontakt" className={SECONDARY}>
               {t("visitCta")}

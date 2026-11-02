@@ -74,14 +74,15 @@ Done and tested:
 2. `next-intl`, Docker for local Postgres, Mailpit and S3, Prisma, Better Auth, `adminAction`, audit, Storybook, tests
 3. Variant and order schema, placing orders, status flow, totals
 4. Sheet import (`pnpm db:import`), public catalogue queries, storage and image sizes
+5. Shop pages, cart and checkout, order e-mails
+6. Admin: articles, categories, manufacturers, orders, delivery, analytics, users, settings, history
+7. Content forms for the homepage, pages and journal
 
 Still to build:
 
-5. Journal, about and legal pages, order email retries, photos, card payment
-6. Admin screens (products, photo uploads, orders, delivery rates), password reset, predračun and račun PDFs,
-   journal, legal pages
+8. Photo uploads on R2, order e-mail retries, password reset, predračun and račun PDFs, card payment, legal texts
 
-Everything imported is a draft, so nothing appears publicly until it is reviewed and published.
+Everything imported is a draft, so nothing appears publicly until it is reviewed and published, so nothing appears publicly until it is reviewed and published.
 
 ## Pantheon and POS
 

@@ -7,6 +7,7 @@ export const HISTORY_TABLES = [
   "product_variant",
   "category",
   "manufacturer",
+  "article",
   "order",
   "delivery_rate",
   "user",

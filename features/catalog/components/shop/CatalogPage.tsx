@@ -37,9 +37,11 @@ export async function CatalogPage({
   const inStock = param(sp.zaliha) === "da";
   const sortKey = param(sp.red);
   const page = pageParam(sp.strana);
-  const pathname = `/kategorija/${category.slug}`;
+  // An empty slug is the page with all products.
+  const pathname = category.slug ? `/kategorija/${category.slug}` : "/proizvodi";
+  const tabHref = (slug: string) => (slug ? `/kategorija/${slug}` : "/proizvodi");
   const filters = {
-    categorySlug: category.slug,
+    categorySlug: category.slug || undefined,
     family: family || undefined,
     medium: medium || undefined,
     inStock,
@@ -48,8 +50,8 @@ export async function CatalogPage({
   const [products, total, families, mediums] = await Promise.all([
     listPublishedProducts({ ...filters, take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE }),
     countPublishedProducts(filters),
-    familiesIn(category.slug),
-    mediumsIn(category.slug),
+    familiesIn(category.slug || undefined),
+    mediumsIn(category.slug || undefined),
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const query = activeQuery({ boja: family, medij: medium, zaliha: inStock ? "da" : "", red: sortKey });
@@ -75,7 +77,7 @@ export async function CatalogPage({
       {category.tabs.length > 0 && (
         <div className="mb-7 flex flex-wrap gap-2">
           <Link
-            href={`/kategorija/${category.tabsRoot.slug}`}
+            href={tabHref(category.tabsRoot.slug)}
             aria-current={category.slug === category.tabsRoot.slug ? "page" : undefined}
             className={`${tab} ${category.slug === category.tabsRoot.slug ? "border-[var(--accent)] text-[var(--accent-bright)]" : "text-[var(--text-secondary)]"}`}
           >

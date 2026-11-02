@@ -82,6 +82,19 @@ export async function listPublishedProducts(filters: CatalogFilters = {}) {
   return db.product.findMany({ where, select: cardSelect, orderBy: { name: "asc" }, take, skip });
 }
 
+/** Staff's chosen products, in the order they listed the šifre. A hidden product is simply left out. */
+export async function listPublishedBySku(skus: string[]) {
+  const rows = await db.product.findMany({
+    where: { ...catalogWhere({}), variants: { some: { active: true, sku: { in: skus } } } },
+    select: cardSelect,
+  });
+  return rows.sort((a, b) => {
+    const rank = (p: (typeof rows)[number]) =>
+      Math.min(...p.variants.map((v) => skus.indexOf(v.sku)).filter((i) => i >= 0));
+    return rank(a) - rank(b);
+  });
+}
+
 export const countPublishedProducts = (filters: CatalogFilters = {}) =>
   db.product.count({ where: catalogWhere(filters) });
 
