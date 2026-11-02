@@ -87,8 +87,8 @@ Everything imported is a draft, so nothing appears publicly until it is reviewed
 ## Pantheon and POS
 
 Pantheon (Datalab) is the financial system and the expected owner of items, prices, stock and invoices. The shop owns
-photos, descriptions and categories, and sends its orders to Pantheon. The connection itself is not built, because how
-to reach it is not confirmed.
+photos, descriptions and categories, and sends its orders to Pantheon. The connection itself is not built. The client reports
+having access to the Pantheon API (3 November 2026), but its details are not confirmed yet.
 
 Ready now, and tested:
 
@@ -100,7 +100,8 @@ Ready now, and tested:
 
 To confirm with whoever maintains their Pantheon:
 
-1. Version, and whether PAWS (Pantheon's web API add-on) is available and licensed. It is the preferred route. Reading
+1. Which API they have (PAWS, Pantheon's web API add-on, or another), its version and documentation, and a test login.
+   An API is the preferred route. Reading
    Pantheon's SQL Server directly is a fallback, since its tables can change between updates.
 2. Whether the šifre in the sheet are Pantheon's item ids. If not, fill `externalId`.
 3. Where Pantheon runs and how an outside service reaches it (a VPN or an open endpoint). Vercel can't join a VPN by itself.

@@ -388,6 +388,7 @@
     "finish": "Izgled",
     "related": "Iz iste police",
     "searchTitle": "Pretraga",
+    "allResults": "Svi rezultati ({count})",
     "searchEmpty": "Ništa ne odgovara upitu „{q}“.",
     "searchStart": "Upišite naziv boje ili šifru.",
     "cartEyebrow": "Korpa",

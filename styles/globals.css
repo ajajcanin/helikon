@@ -299,3 +299,8 @@ select:not([multiple]) {
   cursor: pointer;
   padding-right: 30px;
 }
+
+/* The browser's clear button is bright blue and ignores the theme. */
+input[type="search"]::-webkit-search-cancel-button {
+  appearance: none;
+}

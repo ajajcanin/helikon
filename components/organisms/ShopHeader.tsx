@@ -3,6 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/atoms/Icon";
+import { HeaderSearch } from "@/components/molecules/HeaderSearch";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useCart } from "@/lib/cart";
 
@@ -96,15 +97,7 @@ export function ShopHeader({ categories, hasJournal, hasAbout }: Props) {
             </Link>
           ))}
         </nav>
-        <form action="/pretraga" className="ml-auto hidden max-w-xs flex-1 md:block">
-          <input
-            name="q"
-            type="search"
-            aria-label={t("search")}
-            placeholder={t("searchHint")}
-            className="h-10 w-full rounded-[2px] border border-[var(--border-subtle)] bg-transparent px-3 font-ui text-sm outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
-          />
-        </form>
+        <HeaderSearch />
         <Link href="/pretraga" aria-label={t("search")} className={`${icon} ml-auto md:hidden`}>
           <Icon name="search" />
         </Link>

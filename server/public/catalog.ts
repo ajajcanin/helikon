@@ -1,5 +1,6 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
+import { displayName } from "@/lib/colour-swatch";
 import { db } from "@/server/db";
 
 /**
@@ -100,6 +101,33 @@ export async function listProductsForArticle(ids: number[]) {
   });
   return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
 }
+
+/** The first matches for the search box, with only what its list shows. */
+export async function searchSuggestions(q: string, take = 6) {
+  const [rows, total] = await Promise.all([
+    listPublishedProducts({ q, take }),
+    countPublishedProducts({ q }),
+  ]);
+  return {
+    total,
+    rows: rows.map((product) => {
+      const prices = product.variants.map((v) => v.price.toNumber());
+      return {
+        slug: product.slug,
+        name: displayName(product),
+        category: product.category?.name ?? null,
+        code: product.colourCode,
+        colourFamily: product.colourFamily,
+        price: prices.length ? Math.min(...prices) : 0,
+        severalPrices: new Set(prices).size > 1,
+        inStock: product.variants.some((v) => v.stockQty > 0),
+        photo: product.photos[0] ?? null,
+      };
+    }),
+  };
+}
+
+export type SearchSuggestions = Awaited<ReturnType<typeof searchSuggestions>>;
 
 export const countPublishedProducts = (filters: CatalogFilters = {}) =>
   db.product.count({ where: catalogWhere(filters) });

@@ -1,7 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { GET as searchRoute } from "@/app/api/search/route";
 import { readCart } from "@/features/orders/checkout-actions";
 import { db } from "@/server/db";
-import { countPublishedProducts, familiesIn, listPublishedProducts } from "@/server/public/catalog";
+import {
+  countPublishedProducts,
+  familiesIn,
+  listPublishedProducts,
+  searchSuggestions,
+} from "@/server/public/catalog";
 import { resetDb, seedDelivery, seedVariant } from "./helpers";
 
 describe("shop catalogue", () => {
@@ -43,6 +49,28 @@ describe("shop catalogue", () => {
     expect((await listPublishedProducts({ sort: "priceDesc", take: 1, skip: 1 })).map((p) => p.id)).toEqual([
       cheap.productId,
     ]);
+  });
+
+  it("suggests only published products, with the full count and no purchase data", async () => {
+    const { dear } = await seed();
+    await db.product.update({ where: { id: dear.productId }, data: { name: "Plavi lak" } });
+    for (let i = 0; i < 3; i++) {
+      const extra = await seedVariant({ price: "1.00", stock: 1 });
+      await db.product.update({ where: { id: extra.productId }, data: { name: `Plavi ${i}` } });
+    }
+    const found = await searchSuggestions("plav", 2);
+    expect(found.total).toBe(5);
+    expect(found.rows.length).toBe(2);
+    const sale = (await searchSuggestions("plavi lak")).rows[0];
+    expect(sale).toMatchObject({ name: "Plavi lak", price: 50, severalPrices: false, inStock: false });
+    expect(JSON.stringify(sale)).not.toMatch(/purchase|margin|cost|reviewNote|confirmedBy/i);
+  });
+
+  it("answers the search box, ignoring anything too short to search", async () => {
+    await seed();
+    const ask = (q: string) => searchRoute(new Request(`http://shop/api/search?q=${q}`));
+    expect(await (await ask("p")).json()).toEqual({ total: 0, rows: [] });
+    expect((await (await ask("plav")).json()).total).toBe(1);
   });
 });
 
