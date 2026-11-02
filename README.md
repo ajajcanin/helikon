@@ -18,7 +18,9 @@ Admin login: http://localhost:3000/admin.
 
 ## Scripts
 
-- `pnpm dev`, `pnpm build`, `pnpm start` - the app
+- `pnpm dev` - the app, using `.env.development`
+- `pnpm build:local`, `pnpm start:local` - a production build on your computer, using `.env.development`
+- `pnpm build`, `pnpm start` - the same for Vercel and CI, which set their own variables
 - `pnpm lint`, `pnpm format` - Biome
 - `pnpm typecheck` - generate route types, then `tsc --noEmit`
 - `pnpm test` - unit and database tests, against a separate test database

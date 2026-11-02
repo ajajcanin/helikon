@@ -4,8 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
-    "start": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next start",
+    "build": "next build",
+    "build:local": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
+    "start": "next start",
+    "start:local": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next start",
     "lint": "biome check .",
     "format": "biome format --write .",
     "typecheck": "next typegen && tsc --noEmit",
