@@ -1,10 +1,10 @@
 import { Decimal } from "decimal.js";
+import { mediaUrl } from "@/lib/media";
 import { UserError } from "@/server/admin/action";
 import type { AuditActor } from "@/server/audit";
 import { FEATURED_KEY, FEATURED_MAX, getFeaturedIds } from "@/server/content";
 import { db } from "@/server/db";
 import { setSetting } from "@/server/settings";
-import { publicUrl } from "@/server/storage";
 
 const rowSelect = {
   id: true,
@@ -19,7 +19,7 @@ const rowSelect = {
     orderBy: { sort: "asc" },
     select: { sku: true, price: true, stockQty: true },
   },
-  photos: { orderBy: { sort: "asc" }, take: 1, select: { storageKey: true, alt: true } },
+  photos: { orderBy: { sort: "asc" }, take: 1, select: { storageKey: true, width: true } },
 } as const;
 
 type Row = Awaited<ReturnType<typeof loadRows>>[number];
@@ -41,7 +41,7 @@ function toRow(p: Row) {
     skus: p.variants.map((v) => v.sku).join(", "),
     priceFrom: prices.length ? Decimal.min(...prices).toFixed(2) : null,
     stock,
-    imageUrl: photo && process.env.NEXT_PUBLIC_MEDIA_URL ? publicUrl(`${photo.storageKey}/320.webp`) : null,
+    imageUrl: photo ? mediaUrl(photo.storageKey, photo.width, 320) : null,
     /** What keeps it off the homepage, if anything */
     hiddenBecause: p.status !== "PUBLISHED" ? ("draft" as const) : stock === 0 ? ("stock" as const) : null,
   };

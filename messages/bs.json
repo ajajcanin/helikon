@@ -454,7 +454,12 @@
     "about": "O nama",
     "mapTitle": "Lokacija radnje Helikon na Google mapi",
     "directions": "Upute do radnje",
-    "openInMaps": "Otvori u Google Maps"
+    "openInMaps": "Otvori u Google Maps",
+    "readTime": "{minutes} min čitanja",
+    "allTags": "Sve",
+    "inArticle": "Proizvodi iz članka",
+    "viewProduct": "Pogledaj",
+    "journalBack": "Nazad na dnevnik"
   },
   "content": {
     "title": "Stranice i početna",
@@ -481,7 +486,21 @@
     "newArticle": "Novi članak",
     "articleTitle": "Naslov",
     "excerpt": "Kratak opis",
-    "publish": "Objavljeno"
+    "publish": "Objavljeno",
+    "tags": "Oznake (odvojene zarezom)",
+    "tagsHint": "Prva oznaka se prikazuje iznad naslova. Do 5 oznaka.",
+    "cover": "Glavna slika",
+    "coverAdd": "Dodaj glavnu sliku",
+    "coverChange": "Promijeni",
+    "coverRemove": "Ukloni",
+    "coverAlt": "Opis glavne slike",
+    "publishAt": "Datum objave",
+    "publishHint": "Budući datum objavljuje članak tog dana.",
+    "endProducts": "Proizvodi na kraju članka",
+    "endProductsHint": "Proizvodi ubačeni u tekst sami se pojavljuju na kraju. Ovdje dodajte ostale.",
+    "content": "Sadržaj",
+    "uploading": "Šalje se…",
+    "productsAdvice": "Preporuka: 2-3 proizvoda u tekstu, ostali na kraju."
   },
   "featured": {
     "title": "Iz naše ponude: artikli",
@@ -497,5 +516,33 @@
     "hidden_stock": "Nema na stanju",
     "confirmReplace": "Ovo će zamijeniti trenutnu listu. Nastaviti?",
     "noSales": "Još nema prodaje za ovaj izbor, pa lista nije promijenjena."
+  },
+  "photos": {
+    "title": "Slike artikla",
+    "hint": "Prva slika se prikazuje u katalogu. JPG, PNG ili WEBP, do 25 MB, najviše 8 slika.",
+    "alt": "Opis slike (za pretragu i slabovide)",
+    "add": "Dodaj slike",
+    "uploading": "Šalje se…"
+  },
+  "editor": {
+    "bold": "Podebljano",
+    "italic": "Koso",
+    "h2": "Naslov",
+    "h3": "Podnaslov",
+    "bullet": "Lista",
+    "ordered": "Numerisana lista",
+    "quote": "Citat",
+    "link": "Link",
+    "linkPrompt": "Adresa linka (prazno uklanja link)",
+    "image": "Slika",
+    "product": "Ubaci artikal",
+    "undo": "Poništi",
+    "redo": "Ponovi",
+    "imageAlt": "Opis slike",
+    "imageCaption": "Natpis ispod slike (nije obavezno)",
+    "imageChoose": "Izaberi sliku",
+    "productSearch": "Pretraži artikle",
+    "placeholder": "Počnite pisati…",
+    "close": "Zatvori"
   }
 }

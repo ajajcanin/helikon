@@ -1,5 +1,5 @@
 import "server-only";
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/server/env";
 
@@ -43,6 +43,10 @@ export async function putObject(key: string, body: Buffer, contentType: string) 
 export async function getObject(key: string): Promise<Buffer> {
   const res = await s3().send(new GetObjectCommand({ Bucket: bucket(), Key: key }));
   return Buffer.from(await res.Body!.transformToByteArray());
+}
+
+export async function deleteObject(key: string) {
+  await s3().send(new DeleteObjectCommand({ Bucket: bucket(), Key: key }));
 }
 
 /** A short-lived URL the admin's browser uploads to directly: Vercel limits request bodies to about 4.5 MB. */

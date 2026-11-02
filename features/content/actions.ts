@@ -4,6 +4,7 @@ import { z } from "zod";
 import { adminAction } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { homeContentSchema } from "@/server/content";
+import { finishUpload, requestUpload } from "@/server/uploads";
 import { createArticle, deleteArticle, saveHomeContent, savePageContent, updateArticle } from "./content";
 
 export const saveHome = adminAction(homeContentSchema, async (input, user) => {
@@ -22,8 +23,18 @@ export const savePage = adminAction(
 const article = z.object({
   title: z.string().max(160),
   excerpt: z.string().max(400),
-  body: z.string().max(50000),
-  published: z.boolean(),
+  content: z.unknown(),
+  tags: z.array(z.string().max(60)).max(20),
+  publishedAt: z.string().max(40).nullable(),
+  cover: z
+    .object({
+      storageKey: z.string().max(120),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+      alt: z.string().max(300),
+    })
+    .nullable(),
+  productIds: z.array(z.number().int().positive()).max(50),
 });
 
 export const addArticle = adminAction(article, async (input, user) => {
@@ -46,3 +57,12 @@ export const removeArticle = adminAction(
     return { data: undefined };
   },
 );
+
+export const requestArticleImage = adminAction(
+  z.object({ contentType: z.string().max(40), size: z.number().int().positive() }),
+  async (input) => ({ data: await requestUpload(input) }),
+);
+
+export const finishArticleImage = adminAction(z.object({ key: z.string().max(80) }), async ({ key }) => ({
+  data: await finishUpload(key, "articles"),
+}));

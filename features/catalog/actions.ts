@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { adminAction } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
+import { finishUpload, requestUpload } from "@/server/uploads";
 import { createCategory, deleteCategory, moveCategory, renameCategory, shiftCategory } from "./categories";
 import {
   createLine,
@@ -12,6 +13,7 @@ import {
   renameLine,
   renameManufacturer,
 } from "./manufacturers";
+import { addPhoto, deletePhoto, movePhoto, updatePhotoAlt } from "./photos";
 import { adjustStock, setProductStatus } from "./products";
 import { confirmProducts, REVIEW_FIELDS, updateReviewField, updateVariantField } from "./review";
 
@@ -125,3 +127,38 @@ export const changeStock = adminAction(
     return { data: undefined };
   },
 );
+
+export const requestProductPhoto = adminAction(
+  z.object({ contentType: z.string().max(40), size: z.number().int().positive() }),
+  async (input) => ({ data: await requestUpload(input) }),
+);
+
+export const finishProductPhoto = adminAction(
+  z.object({ productId: id, key: z.string().max(80) }),
+  async ({ productId, key }, user) => {
+    const image = await finishUpload(key, "products");
+    await addPhoto(productId, image, actorOf(user));
+    return { data: undefined };
+  },
+);
+
+export const editPhotoAlt = adminAction(
+  z.object({ id, alt: z.string().max(300) }),
+  async ({ id, alt }, user) => {
+    await updatePhotoAlt(id, alt, actorOf(user));
+    return { data: undefined };
+  },
+);
+
+export const reorderPhoto = adminAction(
+  z.object({ id, direction: z.enum(["up", "down"]) }),
+  async ({ id, direction }, user) => {
+    await movePhoto(id, direction, actorOf(user));
+    return { data: undefined };
+  },
+);
+
+export const removePhoto = adminAction(z.object({ id }), async ({ id }, user) => {
+  await deletePhoto(id, actorOf(user));
+  return { data: undefined };
+});

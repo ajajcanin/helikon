@@ -1,9 +1,9 @@
 import "server-only";
 import sharp from "sharp";
+import { IMAGE_WIDTHS } from "@/lib/media";
 import { putObject } from "@/server/storage";
 
-/** Widths generated once at upload, so Vercel's image optimisation isn't needed. */
-export const IMAGE_WIDTHS = [320, 640, 1024, 1600] as const;
+export { IMAGE_WIDTHS };
 
 export type ImageSize = { width: number; height: number; data: Buffer };
 

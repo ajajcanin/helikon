@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate --no-hints && next build",
-    "build:local": "prisma generate --no-hints && node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next build",
+    "build:local": "set -a && . ./.env.development && set +a && pnpm build",
     "start": "next start",
     "start:local": "node --env-file-if-exists=.env.development ./node_modules/next/dist/bin/next start",
     "lint": "biome check .",
@@ -30,6 +30,9 @@
     "@next/third-parties": "16.4.3",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
+    "@tiptap/pm": "3.32.2",
+    "@tiptap/react": "3.32.2",
+    "@tiptap/starter-kit": "3.32.2",
     "better-auth": "1.7.14",
     "clsx": "2.1.1",
     "decimal.js": "10.6.0",

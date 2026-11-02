@@ -73,15 +73,34 @@ export async function listPublishedPages() {
   });
 }
 
-const articleSelect = { slug: true, title: true, excerpt: true, publishedAt: true } as const;
+const articleSelect = {
+  slug: true,
+  title: true,
+  excerpt: true,
+  publishedAt: true,
+  tags: true,
+  body: true,
+  coverKey: true,
+  coverWidth: true,
+  coverHeight: true,
+  coverAlt: true,
+} as const;
 
-export function listPublishedArticles(take = 50) {
+export function listPublishedArticles(tag?: string, take = 50) {
   return db.article.findMany({
-    where: { publishedAt: { not: null, lte: new Date() } },
+    where: { publishedAt: { not: null, lte: new Date() }, ...(tag ? { tags: { has: tag } } : {}) },
     orderBy: { publishedAt: "desc" },
     select: articleSelect,
     take,
   });
+}
+
+export async function listPublishedTags() {
+  const rows = await db.article.findMany({
+    where: { publishedAt: { not: null, lte: new Date() } },
+    select: { tags: true },
+  });
+  return [...new Set(rows.flatMap((r) => r.tags))].sort((a, b) => a.localeCompare(b, "bs"));
 }
 
 export const countPublishedArticles = () =>
@@ -90,6 +109,6 @@ export const countPublishedArticles = () =>
 export function getPublishedArticle(slug: string) {
   return db.article.findFirst({
     where: { slug, publishedAt: { not: null, lte: new Date() } },
-    select: { ...articleSelect, body: true },
+    select: { ...articleSelect, content: true, productIds: true },
   });
 }

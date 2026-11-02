@@ -49,6 +49,22 @@ record in Cloudflare, and change `APP_URL`.
 Check that existing Resend and analytics variables in Vercel are scoped to Production only. A variable set for all
 environments would reach dev too.
 
+## Images (Cloudflare R2)
+
+Locally, images go to the S3 server in Docker. The dev site can't reach that, so uploading there fails, and images
+uploaded locally don't show there, until R2 is set up. The Neon database is shared, so a local upload saved to a product
+or article shows as a broken image on the dev site.
+
+1. **Cloudflare > R2:** create the bucket `helikon-media`.
+2. **Bucket > Settings > Custom domain:** connect `media.helikon.ba` (use a separate bucket or `media-dev.helikon.ba`
+   if dev and production shouldn't share images).
+3. **Bucket > Settings > CORS policy:** allow `PUT` with the `content-type` header from the site's addresses, because
+   browsers upload directly to the bucket.
+4. **R2 > Manage API tokens:** create a token with Object Read & Write for this bucket only.
+5. **Vercel > Settings > Environment Variables:** `S3_ENDPOINT` (`https://<account-id>.r2.cloudflarestorage.com`),
+   `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` and `NEXT_PUBLIC_MEDIA_URL` (`https://media.helikon.ba`),
+   then redeploy, because `NEXT_PUBLIC_` values are fixed at build time.
+
 ## Before the first production deploy
 
 - Move the data the client confirmed on dev to production, because the two databases are separate. Do it once:

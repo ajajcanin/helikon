@@ -217,3 +217,74 @@ body {
 .hk-swatch rect {
   filter: url(#hk-smear);
 }
+
+/* The article editor: close to how the text looks on the site. */
+.hk-editor .ProseMirror {
+  min-height: 320px;
+  padding: 14px;
+  outline: none;
+  font-family: var(--font-body);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.hk-editor .ProseMirror > * + * {
+  margin-top: 0.8em;
+}
+
+.hk-editor h2,
+.hk-editor h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+}
+
+.hk-editor h2 {
+  font-size: 1.5em;
+}
+
+.hk-editor h3 {
+  font-size: 1.2em;
+}
+
+.hk-editor ul {
+  list-style: disc;
+  padding-left: 1.5em;
+}
+
+.hk-editor ol {
+  list-style: decimal;
+  padding-left: 1.5em;
+}
+
+.hk-editor blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 1em;
+  font-style: italic;
+}
+
+.hk-editor a {
+  color: var(--accent-bright);
+  text-decoration: underline;
+}
+
+.hk-editor figure img {
+  max-height: 320px;
+  max-width: 100%;
+}
+
+.hk-editor figcaption {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.hk-editor [data-product] {
+  border: 1px solid var(--border-brass);
+  padding: 10px 14px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+}
+
+.hk-editor .ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+}

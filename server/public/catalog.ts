@@ -91,6 +91,16 @@ export async function listFeaturedProducts(ids: number[]) {
   return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
 }
 
+/** Products attached to an article, in order, including sold-out ones: the text around them still makes sense. */
+export async function listProductsForArticle(ids: number[]) {
+  if (ids.length === 0) return [];
+  const rows = await db.product.findMany({
+    where: { ...catalogWhere({}), id: { in: ids } },
+    select: cardSelect,
+  });
+  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
+}
+
 export const countPublishedProducts = (filters: CatalogFilters = {}) =>
   db.product.count({ where: catalogWhere(filters) });
 

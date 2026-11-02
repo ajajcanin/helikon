@@ -1,14 +1,15 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { PageTitle } from "@/components/atoms/PageTitle";
 import { ArticleForm } from "@/features/content/components/ArticleForm";
-import { listArticlesAdmin } from "@/features/content/content";
+import { knownTags, listArticlesAdmin } from "@/features/content/content";
 import { Link } from "@/i18n/navigation";
 
 export default async function JournalAdminPage() {
-  const [t, format, articles] = await Promise.all([
+  const [t, format, articles, tags] = await Promise.all([
     getTranslations("content"),
     getFormatter(),
     listArticlesAdmin(),
+    knownTags(),
   ]);
   return (
     <>
@@ -24,14 +25,15 @@ export default async function JournalAdminPage() {
                 {a.title}
               </Link>
               <span className="text-xs text-[var(--text-muted)]">
-                {a.publishedAt ? t("visible") : t("hidden")} · {format.dateTime(a.updatedAt, "long")}
+                {a.tags.join(", ")} · {a.publishedAt ? t("visible") : t("hidden")} ·{" "}
+                {format.dateTime(a.updatedAt, "long")}
               </span>
             </li>
           ))}
         </ul>
       )}
       <h2 className="mb-3 font-display text-base tracking-[0.04em]">{t("newArticle")}</h2>
-      <ArticleForm />
+      <ArticleForm knownTags={tags} />
     </>
   );
 }

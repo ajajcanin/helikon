@@ -385,9 +385,17 @@ model Article {
   slug        String    @unique
   title       String
   excerpt     String?
-  /// Markdown
+  /// Plain text of the article, kept from the content for reading time
   body        String
+  /// The editor's document, checked on save by features/content/article-content.ts
+  content     Json?
   coverKey    String?   @map("cover_key")
+  coverWidth  Int?      @map("cover_width")
+  coverHeight Int?      @map("cover_height")
+  coverAlt    String?   @map("cover_alt")
+  tags        String[]  @default([])
+  /// Products shown only at the end. Those placed in the text are shown there too.
+  productIds  Int[]     @default([]) @map("product_ids")
   publishedAt DateTime? @map("published_at")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")

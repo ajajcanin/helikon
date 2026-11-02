@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
 import { ProductCard, ProductGrid } from "@/features/catalog/components/shop/ProductCard";
 import { AddToCart } from "@/features/orders/components/AddToCart";
@@ -54,14 +55,33 @@ export default async function ProductPage({ params }: Props) {
       </nav>
       <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
         <div className="md:sticky md:top-32">
-          <PaintSwatch
-            color={swatchColour(product.colourFamily)}
-            className="aspect-square border border-[var(--border-subtle)]"
-          />
-          {product.colourFamily && (
-            <p className="mt-3 font-ui text-[11px] tracking-[0.14em] text-[var(--text-muted)] uppercase">
-              {t("swatchNote")}
-            </p>
+          {product.photos.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              {product.photos.map((photo, index) => (
+                <MediaImage
+                  key={photo.storageKey}
+                  storageKey={photo.storageKey}
+                  width={photo.width}
+                  height={photo.height}
+                  alt={photo.alt ?? name}
+                  sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
+                  priority={index === 0}
+                  className={`w-full border border-[var(--border-subtle)] object-cover ${index === 0 ? "col-span-2 aspect-square" : "aspect-square"}`}
+                />
+              ))}
+            </div>
+          ) : (
+            <>
+              <PaintSwatch
+                color={swatchColour(product.colourFamily)}
+                className="aspect-square border border-[var(--border-subtle)]"
+              />
+              {product.colourFamily && (
+                <p className="mt-3 font-ui text-[11px] tracking-[0.14em] text-[var(--text-muted)] uppercase">
+                  {t("swatchNote")}
+                </p>
+              )}
+            </>
           )}
         </div>
         <div>
