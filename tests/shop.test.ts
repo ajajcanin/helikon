@@ -86,6 +86,58 @@ describe("shop catalogue", () => {
     expect(await ids(yellow.sku)).toEqual([yellow.productId]);
   });
 
+  it("searches words in any order across names, category, line and manufacturer", async () => {
+    const maker = await db.manufacturer.create({ data: { slug: "rich", name: "Rich" } });
+    const line = await db.manufacturerLine.create({
+      data: { manufacturerId: maker.id, name: "Master Acrylic" },
+    });
+    const paints = await db.category.create({ data: { slug: "akrilne", name: "Akrilne boje" } });
+    const primers = await db.category.create({ data: { slug: "podloge", name: "Podloge" } });
+    const white = await seedVariant();
+    await db.product.update({
+      where: { id: white.productId },
+      data: {
+        name: "Akrilna boja - White - Bijela",
+        colourName: "Bijela",
+        colourNameMaker: "White",
+        categoryId: paints.id,
+        lineId: line.id,
+        manufacturerId: maker.id,
+      },
+    });
+    const primer = await seedVariant();
+    await db.product.update({
+      where: { id: primer.productId },
+      data: { name: "Gesso", categoryId: primers.id },
+    });
+    const ids = async (q: string) => (await listPublishedProducts({ q })).map((p) => p.id);
+    for (const q of [
+      "acrylic white",
+      "white acrylic",
+      "bijela akrilna",
+      "akrilna bijele",
+      "rich bijela",
+      `${white.sku} bijela`,
+    ]) {
+      expect(await ids(q)).toEqual([white.productId]);
+    }
+    for (const q of ["podloga", "podloge", "podlogu", "gesso"])
+      expect(await ids(q)).toEqual([primer.productId]);
+    expect(await ids("acrylic gesso")).toEqual([]);
+    const snow = await seedVariant();
+    await db.product.update({
+      where: { id: snow.productId },
+      data: { name: "Lak", colourNameMaker: "Snowflake" },
+    });
+    const flake = await seedVariant();
+    await db.product.update({
+      where: { id: flake.productId },
+      data: { name: "Boja", colourNameMaker: "Snowflake" },
+    });
+    expect(await ids("lak")).toEqual([snow.productId]);
+    expect(await countPublishedProducts({ q: "acrylic white" })).toBe(1);
+  });
+
   it("offers only the filters that exist within a search", async () => {
     await seed();
     expect(await familiesIn(undefined, "plav")).toEqual(["plave"]);

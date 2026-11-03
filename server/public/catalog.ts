@@ -45,20 +45,39 @@ const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
 const foldLetters = (text: string) =>
   text.toLowerCase().replace(/[čć]/g, "c").replace(/ž/g, "z").replace(/š/g, "s").replace(/đ/g, "d");
 
+/** The words of a search as patterns, for text that starts with a space. A final vowel is dropped, so "podloga" also finds "podloge". */
+function searchPatterns(q: string) {
+  return foldLetters(q)
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 8)
+    .map((word) =>
+      // A short word could sit inside a longer one ("lak" in "snowflake"), so it must start a word.
+      word.length >= 4 ? `%${escapeLike(word.replace(/[aeiou]$/, ""))}%` : `% ${escapeLike(word)}%`,
+    );
+}
+
 /**
- * Products whose names match with or without č, ć, ž, š, đ. Prisma can't express this, so it's a query of its own.
- * Đ is also compared as "dj", the usual way of typing it. Scanning is fine at catalogue size.
+ * Products with every word of the search somewhere in their names, category, line, manufacturer or šifre, in any order
+ * and with or without č, ć, ž, š, đ. Prisma can't express this, so it's a query of its own. Đ is also compared as "dj",
+ * the usual way of typing it. Scanning is fine at catalogue size.
  */
 async function productIdsMatching(q: string) {
-  const pattern = `%${escapeLike(foldLetters(q))}%`;
   const rows = await db.$queryRaw<{ id: number }[]>`
     SELECT id FROM (
-      SELECT id, translate(lower(concat_ws(' ', name, colour_name, colour_name_maker)),
+      SELECT p.id, translate(lower(concat_ws(' ', '', p.name, p.colour_name, p.colour_name_maker, c.name, l.name, m.name,
+        (SELECT string_agg(v.sku, ' ') FROM product_variant v WHERE v.product_id = p.id AND v.active))),
         'ČĆŽŠčćžš', 'cczscczs') AS text
-      FROM product
-    ) p
-    WHERE translate(text, 'Đđ', 'dd') LIKE ${pattern}
-       OR replace(replace(text, 'Đ', 'dj'), 'đ', 'dj') LIKE ${pattern}`;
+      FROM product p
+      LEFT JOIN category c ON c.id = p.category_id
+      LEFT JOIN manufacturer_line l ON l.id = p.line_id
+      LEFT JOIN manufacturer m ON m.id = p.manufacturer_id
+    ) found
+    WHERE NOT EXISTS (
+      SELECT 1 FROM unnest(${searchPatterns(q)}::text[]) AS pattern
+      WHERE translate(text, 'Đđ', 'dd') NOT LIKE pattern
+        AND replace(replace(text, 'Đ', 'dj'), 'đ', 'dj') NOT LIKE pattern
+    )`;
   return rows.map((row) => row.id);
 }
 
@@ -81,10 +100,7 @@ function catalogWhere(f: CatalogFilters & { matchIds?: number[] }): Prisma.Produ
     ...(f.medium ? { medium: f.medium } : {}),
     ...(search
       ? {
-          OR: [
-            { id: { in: f.matchIds ?? [] } },
-            { variants: { some: { active: true, sku: { contains: escapeLike(search) } } } },
-          ],
+          id: { in: f.matchIds ?? [] },
         }
       : {}),
   };
