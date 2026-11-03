@@ -38,7 +38,37 @@ export type CatalogFilters = {
   skip?: number;
 };
 
-function catalogWhere(f: CatalogFilters): Prisma.ProductWhereInput {
+/** So % and _ in a search mean themselves. */
+const escapeLike = (text: string) => text.replace(/[\\%_]/g, "\\$&");
+
+/** Folds a search to plain letters: customers often type "zuta" for "Žuta". */
+const foldLetters = (text: string) =>
+  text.toLowerCase().replace(/[čć]/g, "c").replace(/ž/g, "z").replace(/š/g, "s").replace(/đ/g, "d");
+
+/**
+ * Products whose names match with or without č, ć, ž, š, đ. Prisma can't express this, so it's a query of its own.
+ * Đ is also compared as "dj", the usual way of typing it. Scanning is fine at catalogue size.
+ */
+async function productIdsMatching(q: string) {
+  const pattern = `%${escapeLike(foldLetters(q))}%`;
+  const rows = await db.$queryRaw<{ id: number }[]>`
+    SELECT id FROM (
+      SELECT id, translate(lower(concat_ws(' ', name, colour_name, colour_name_maker)),
+        'ČĆŽŠčćžš', 'cczscczs') AS text
+      FROM product
+    ) p
+    WHERE translate(text, 'Đđ', 'dd') LIKE ${pattern}
+       OR replace(replace(text, 'Đ', 'dj'), 'đ', 'dj') LIKE ${pattern}`;
+  return rows.map((row) => row.id);
+}
+
+/** Filters ready to query, with any search already resolved to products. */
+async function resolveSearch(f: CatalogFilters): Promise<CatalogFilters & { matchIds?: number[] }> {
+  const q = f.q?.trim();
+  return q ? { ...f, q, matchIds: await productIdsMatching(q) } : f;
+}
+
+function catalogWhere(f: CatalogFilters & { matchIds?: number[] }): Prisma.ProductWhereInput {
   const search = f.q?.trim();
   return {
     status: "PUBLISHED",
@@ -52,10 +82,8 @@ function catalogWhere(f: CatalogFilters): Prisma.ProductWhereInput {
     ...(search
       ? {
           OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { colourName: { contains: search, mode: "insensitive" } },
-            { colourNameMaker: { contains: search, mode: "insensitive" } },
-            { variants: { some: { active: true, sku: { contains: search } } } },
+            { id: { in: f.matchIds ?? [] } },
+            { variants: { some: { active: true, sku: { contains: escapeLike(search) } } } },
           ],
         }
       : {}),
@@ -63,7 +91,7 @@ function catalogWhere(f: CatalogFilters): Prisma.ProductWhereInput {
 }
 
 export async function listPublishedProducts(filters: CatalogFilters = {}) {
-  const where = catalogWhere(filters);
+  const where = catalogWhere(await resolveSearch(filters));
   const take = filters.take ?? 48;
   const skip = filters.skip ?? 0;
   if (filters.sort === "priceAsc" || filters.sort === "priceDesc") {
@@ -129,8 +157,8 @@ export async function searchSuggestions(q: string, take = 6) {
 
 export type SearchSuggestions = Awaited<ReturnType<typeof searchSuggestions>>;
 
-export const countPublishedProducts = (filters: CatalogFilters = {}) =>
-  db.product.count({ where: catalogWhere(filters) });
+export const countPublishedProducts = async (filters: CatalogFilters = {}) =>
+  db.product.count({ where: catalogWhere(await resolveSearch(filters)) });
 
 /** Which colour families exist under the current category, so a filter never leads to an empty page. */
 export async function familiesIn(categorySlug?: string) {

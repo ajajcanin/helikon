@@ -66,6 +66,24 @@ describe("shop catalogue", () => {
     expect(JSON.stringify(sale)).not.toMatch(/purchase|margin|cost|reviewNote|confirmedBy/i);
   });
 
+  it("finds names with or without č, ć, ž, š, đ, and treats search characters as text", async () => {
+    const yellow = await seedVariant();
+    const flower = await seedVariant();
+    await db.product.update({
+      where: { id: yellow.productId },
+      data: { name: "Boja", colourName: "Žuta šećer" },
+    });
+    await db.product.update({ where: { id: flower.productId }, data: { name: "Đurđevak" } });
+    const ids = async (q: string) => (await listPublishedProducts({ q })).map((p) => p.id);
+    for (const q of ["zuta", "Žuta", "ŽUTA", "secer", "šećer"])
+      expect(await ids(q)).toEqual([yellow.productId]);
+    for (const q of ["durdevak", "djurdjevak", "Đurđevak"]) expect(await ids(q)).toEqual([flower.productId]);
+    expect(await countPublishedProducts({ q: "zuta" })).toBe(1);
+    expect(await ids("%")).toEqual([]);
+    expect(await ids("z_ta")).toEqual([]);
+    expect(await ids(yellow.sku)).toEqual([yellow.productId]);
+  });
+
   it("answers the search box, ignoring anything too short to search", async () => {
     await seed();
     const ask = (q: string) => searchRoute(new Request(`http://shop/api/search?q=${q}`));

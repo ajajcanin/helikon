@@ -65,11 +65,10 @@ export async function listPublishedPages() {
   const rows = await db.setting.findMany({
     where: { key: { in: CONTENT_PAGES.map((p) => pageKey(p.slug)) } },
   });
+  // Links use the page's short name: a heading such as "Pod okriljem muza" doesn't say where it leads.
   return CONTENT_PAGES.flatMap((page) => {
-    const value = rows.find((r) => r.key === pageKey(page.slug))?.value as
-      | { title?: string; body?: string }
-      | undefined;
-    return value?.body?.trim() ? [{ slug: page.slug, title: value.title?.trim() || page.label }] : [];
+    const value = rows.find((r) => r.key === pageKey(page.slug))?.value as { body?: string } | undefined;
+    return value?.body?.trim() ? [{ slug: page.slug, title: page.label }] : [];
   });
 }
 
