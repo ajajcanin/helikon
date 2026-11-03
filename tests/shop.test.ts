@@ -7,6 +7,7 @@ import {
   familiesIn,
   listLineColours,
   listPublishedProducts,
+  mediumsIn,
   searchSuggestions,
 } from "@/server/public/catalog";
 import { resetDb, seedDelivery, seedVariant } from "./helpers";
@@ -83,6 +84,20 @@ describe("shop catalogue", () => {
     expect(await ids("%")).toEqual([]);
     expect(await ids("z_ta")).toEqual([]);
     expect(await ids(yellow.sku)).toEqual([yellow.productId]);
+  });
+
+  it("offers only the filters that exist within a search", async () => {
+    await seed();
+    expect(await familiesIn(undefined, "plav")).toEqual(["plave"]);
+    expect((await familiesIn()).sort()).toEqual(["plave", "zlatne"]);
+    expect(await familiesIn(undefined, "nema-toga")).toEqual([]);
+    const { cheap } = await seed();
+    await db.product.update({
+      where: { id: cheap.productId },
+      data: { medium: "akril", colourName: "Plavetna" },
+    });
+    expect(await mediumsIn(undefined, "plavetna")).toEqual(["akril"]);
+    expect(await mediumsIn(undefined, "nema-toga")).toEqual([]);
   });
 
   it("lists a line's published colours and leaves out items without a colour", async () => {

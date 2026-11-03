@@ -160,20 +160,20 @@ export type SearchSuggestions = Awaited<ReturnType<typeof searchSuggestions>>;
 export const countPublishedProducts = async (filters: CatalogFilters = {}) =>
   db.product.count({ where: catalogWhere(await resolveSearch(filters)) });
 
-/** Which colour families exist under the current category, so a filter never leads to an empty page. */
-export async function familiesIn(categorySlug?: string) {
+/** Which colour families exist under the current category and search, so a filter never leads to an empty page. */
+export async function familiesIn(categorySlug?: string, q?: string) {
   const rows = await db.product.groupBy({
     by: ["colourFamily"],
-    where: { ...catalogWhere({ categorySlug }), colourFamily: { not: null } },
+    where: { ...catalogWhere(await resolveSearch({ categorySlug, q })), colourFamily: { not: null } },
     _count: true,
   });
   return rows.map((r) => r.colourFamily as string);
 }
 
-export async function mediumsIn(categorySlug?: string) {
+export async function mediumsIn(categorySlug?: string, q?: string) {
   const rows = await db.product.groupBy({
     by: ["medium"],
-    where: { ...catalogWhere({ categorySlug }), medium: { not: null } },
+    where: { ...catalogWhere(await resolveSearch({ categorySlug, q })), medium: { not: null } },
   });
   return rows.map((r) => r.medium as string);
 }

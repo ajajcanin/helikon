@@ -1,4 +1,6 @@
 import { getTranslations } from "next-intl/server";
+import { FIELD_CLASS } from "@/components/atoms/Field";
+import { FilterForm } from "@/components/molecules/FilterForm";
 import { Link } from "@/i18n/navigation";
 import { activeQuery, pageParam, param, type SearchParams } from "@/lib/search-params";
 import {
@@ -32,6 +34,7 @@ export async function CatalogPage({
 }) {
   const sp = await searchParams;
   const t = await getTranslations("shop");
+  const q = param(sp.q).trim().slice(0, 100);
   const family = param(sp.boja);
   const medium = param(sp.medij);
   const inStock = param(sp.zaliha) === "da";
@@ -39,9 +42,14 @@ export async function CatalogPage({
   const page = pageParam(sp.strana);
   // An empty slug is the page with all products.
   const pathname = category.slug ? `/kategorija/${category.slug}` : "/proizvodi";
-  const tabHref = (slug: string) => (slug ? `/kategorija/${slug}` : "/proizvodi");
+  // A search carries over between categories, so it can be narrowed down by clicking a tab.
+  const tabHref = (slug: string) => ({
+    pathname: slug ? `/kategorija/${slug}` : "/proizvodi",
+    query: q ? { q } : {},
+  });
   const filters = {
     categorySlug: category.slug || undefined,
+    q: q || undefined,
     family: family || undefined,
     medium: medium || undefined,
     inStock,
@@ -50,11 +58,11 @@ export async function CatalogPage({
   const [products, total, families, mediums] = await Promise.all([
     listPublishedProducts({ ...filters, take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE }),
     countPublishedProducts(filters),
-    familiesIn(category.slug || undefined),
-    mediumsIn(category.slug || undefined),
+    familiesIn(category.slug || undefined, q || undefined),
+    mediumsIn(category.slug || undefined, q || undefined),
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const query = activeQuery({ boja: family, medij: medium, zaliha: inStock ? "da" : "", red: sortKey });
+  const query = activeQuery({ q, boja: family, medij: medium, zaliha: inStock ? "da" : "", red: sortKey });
   const tab =
     "border border-[var(--border-subtle)] rounded-[2px] px-3.5 py-2 font-ui text-xs uppercase tracking-[0.14em]";
   return (
@@ -86,7 +94,7 @@ export async function CatalogPage({
           {category.tabs.map((c) => (
             <Link
               key={c.slug}
-              href={`/kategorija/${c.slug}`}
+              href={tabHref(c.slug)}
               aria-current={c.slug === category.slug ? "page" : undefined}
               className={`${tab} ${c.slug === category.slug ? "border-[var(--accent)] text-[var(--accent-bright)]" : "text-[var(--text-secondary)]"}`}
             >
@@ -107,7 +115,7 @@ export async function CatalogPage({
                 pathname={pathname}
                 families={families}
                 mediums={mediums}
-                selected={{ family, medium, inStock, sort: sortKey }}
+                selected={{ q, family, medium, inStock, sort: sortKey }}
               />
             </div>
           </details>
@@ -116,11 +124,27 @@ export async function CatalogPage({
               pathname={pathname}
               families={families}
               mediums={mediums}
-              selected={{ family, medium, inStock, sort: sortKey }}
+              selected={{ q, family, medium, inStock, sort: sortKey }}
             />
           </div>
         </aside>
         <div>
+          <FilterForm className="mb-4">
+            <input
+              name="q"
+              type="search"
+              defaultValue={q}
+              // biome-ignore lint/a11y/noAutofocus: only after pressing the search icon, which asks for exactly this
+              autoFocus={param(sp.fokus) === "pretraga"}
+              aria-label={t("search")}
+              placeholder={t("searchHint")}
+              className={FIELD_CLASS}
+            />
+            {family && <input type="hidden" name="boja" value={family} />}
+            {medium && <input type="hidden" name="medij" value={medium} />}
+            {inStock && <input type="hidden" name="zaliha" value="da" />}
+            {sortKey && <input type="hidden" name="red" value={sortKey} />}
+          </FilterForm>
           <p className="mb-5 font-ui text-[13px] tracking-[0.08em] text-[var(--text-muted)]">
             {t("results", { count: total })}
           </p>
@@ -133,7 +157,9 @@ export async function CatalogPage({
           ) : (
             <div className="border border-[var(--border-subtle)] bg-[var(--surface-sunk)] px-6 py-16 text-center">
               <p className="mb-2 font-display text-[22px] tracking-[0.04em]">{t("noResultsTitle")}</p>
-              <p className="mb-4 font-body text-[var(--text-secondary)]">{t("noResultsText")}</p>
+              <p className="mb-4 font-body text-[var(--text-secondary)]">
+                {q ? t("searchEmpty", { q }) : t("noResultsText")}
+              </p>
               <Link
                 href={pathname}
                 className="font-ui text-sm text-[var(--accent-bright)] underline underline-offset-4"

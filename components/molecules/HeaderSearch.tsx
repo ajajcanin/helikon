@@ -13,7 +13,7 @@ const MIN_LENGTH = 2;
 const TYPING_PAUSE_MS = 250;
 const LIST_ID = "header-search-list";
 
-/** Search with suggestions. Pressing Enter goes to the full results, and works as a plain form before the page loads. */
+/** Search with suggestions. Pressing Enter opens the results in the catalogue, and works as a plain form before the page loads. */
 export function HeaderSearch() {
   const t = useTranslations("shop");
   const router = useRouter();
@@ -46,7 +46,7 @@ export function HeaderSearch() {
   useEffect(() => setOpen(false), [pathname]);
 
   const rows = found?.rows ?? [];
-  const results = { pathname: "/pretraga", query: { q } };
+  const results = { pathname: "/proizvodi", query: { q } };
   const optionCount = rows.length > 0 ? rows.length + 1 : 0;
   const optionId = (index: number) => `${LIST_ID}-${index}`;
   const showList = open && found !== null;
@@ -71,12 +71,16 @@ export function HeaderSearch() {
     setOpen(false);
     const row = showList ? rows[active] : undefined;
     if (row) router.push(`/proizvod/${row.slug}`);
-    else router.push(q ? results : "/pretraga");
+    else {
+      // The catalogue's own search box takes over from here.
+      setQuery("");
+      router.push(q ? results : "/proizvodi");
+    }
   }
 
   return (
     <form
-      action="/pretraga"
+      action="/proizvodi"
       onSubmit={submit}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
@@ -165,7 +169,10 @@ export function HeaderSearch() {
               <Link
                 href={results}
                 tabIndex={-1}
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false);
+                  setQuery("");
+                }}
                 className={`block border-t border-[var(--border-subtle)] px-3 py-2.5 text-center font-ui text-xs tracking-[0.08em] text-[var(--accent-bright)] ${active === rows.length ? "bg-[var(--accent-subtle)]" : "hover:bg-[var(--accent-subtle)]"}`}
               >
                 {t("allResults", { count: found?.total ?? 0 })}

@@ -98,7 +98,11 @@ export function ShopHeader({ categories, hasJournal, hasAbout }: Props) {
           ))}
         </nav>
         <HeaderSearch />
-        <Link href="/pretraga" aria-label={t("search")} className={`${icon} ml-auto md:hidden`}>
+        <Link
+          href="/proizvodi?fokus=pretraga"
+          aria-label={t("search")}
+          className={`${icon} ml-auto md:hidden`}
+        >
           <Icon name="search" />
         </Link>
         <Link href="/korpa" className={icon}>

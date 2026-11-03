@@ -9,7 +9,7 @@ type Props = {
   pathname: string;
   families: string[];
   mediums: string[];
-  selected: { family: string; medium: string; inStock: boolean; sort: string };
+  selected: { q: string; family: string; medium: string; inStock: boolean; sort: string };
 };
 
 /** Links and a GET form, so filters also work without JavaScript and every filtered page has its own address. */
@@ -17,6 +17,7 @@ export function CatalogFilters({ pathname, families, mediums, selected }: Props)
   const t = useTranslations("shop");
   const heading = "mb-3 font-ui text-[11px] tracking-[0.2em] text-[var(--text-muted)] uppercase";
   const query = (family: string) => ({
+    ...(selected.q ? { q: selected.q } : {}),
     ...(family ? { boja: family } : {}),
     ...(selected.medium ? { medij: selected.medium } : {}),
     ...(selected.inStock ? { zaliha: "da" } : {}),
@@ -71,6 +72,7 @@ export function CatalogFilters({ pathname, families, mediums, selected }: Props)
         </div>
       )}
       <FilterForm className="flex flex-col gap-4">
+        {selected.q && <input type="hidden" name="q" value={selected.q} />}
         {selected.family && <input type="hidden" name="boja" value={selected.family} />}
         {mediums.length > 1 && (
           <label className={heading}>
