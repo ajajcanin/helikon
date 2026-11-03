@@ -41,7 +41,14 @@ async function AboutPage({ title, body }: { title: string; body: string }) {
   return (
     <>
       <section className="relative h-[300px] overflow-hidden border-b border-[var(--border-subtle)] md:h-[420px]">
-        <Image src={interior} alt={t("interiorAlt")} fill priority sizes="100vw" className="object-cover object-top" />
+        <Image
+          src={interior}
+          alt={t("interiorAlt")}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-top"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-page)] via-[color-mix(in_srgb,var(--bg-page)_55%,transparent)] to-transparent" />
         <div className="absolute inset-x-0 bottom-9 px-6 text-center">
           <span className="hk-eyebrow">{t("about")}</span>

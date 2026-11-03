@@ -5,6 +5,7 @@ import { db } from "@/server/db";
 import {
   countPublishedProducts,
   familiesIn,
+  listLineColours,
   listPublishedProducts,
   searchSuggestions,
 } from "@/server/public/catalog";
@@ -82,6 +83,25 @@ describe("shop catalogue", () => {
     expect(await ids("%")).toEqual([]);
     expect(await ids("z_ta")).toEqual([]);
     expect(await ids(yellow.sku)).toEqual([yellow.productId]);
+  });
+
+  it("lists a line's published colours and leaves out items without a colour", async () => {
+    const maker = await db.manufacturer.create({ data: { slug: "m", name: "M" } });
+    const line = await db.manufacturerLine.create({ data: { manufacturerId: maker.id, name: "L" } });
+    const place = async (id: number, colourName: string | null) =>
+      db.product.update({ where: { id }, data: { lineId: line.id, colourName } });
+    const red = await seedVariant({ stock: 0 });
+    const blue = await seedVariant();
+    const draft = await seedVariant({ status: "DRAFT" });
+    const tool = await seedVariant();
+    await place(red.productId, "Crvena");
+    await place(blue.productId, "Plava");
+    await place(draft.productId, "Skica");
+    await place(tool.productId, null);
+    const colours = await listLineColours(line.id);
+    expect(colours.map((c) => c.colourName)).toEqual(["Crvena", "Plava"]);
+    expect(colours[0]?.variants).toEqual([{ stockQty: 0 }]);
+    expect(JSON.stringify(colours)).not.toMatch(/purchase|margin|reviewNote|confirmedBy/i);
   });
 
   it("answers the search box, ignoring anything too short to search", async () => {

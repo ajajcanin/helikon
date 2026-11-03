@@ -3,12 +3,13 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
+import { LineColours } from "@/features/catalog/components/shop/LineColours";
 import { ProductCard, ProductGrid } from "@/features/catalog/components/shop/ProductCard";
 import { AddToCart } from "@/features/orders/components/AddToCart";
 import { Link } from "@/i18n/navigation";
 import { displayName, swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
-import { getPublishedProduct, listRelatedProducts } from "@/server/public/catalog";
+import { getPublishedProduct, listLineColours, listRelatedProducts } from "@/server/public/catalog";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -26,7 +27,11 @@ export default async function ProductPage({ params }: Props) {
   const product = await getPublishedProduct((await params).slug);
   if (!product) notFound();
   const t = await getTranslations("shop");
-  const related = await listRelatedProducts(product.id, product.categoryId);
+  const [related, colours] = await Promise.all([
+    listRelatedProducts(product.id, product.categoryId),
+    product.lineId ? listLineColours(product.lineId) : [],
+  ]);
+  const showColours = colours.length > 1 && colours.some((c) => c.id === product.id);
   const specs = Array.isArray(product.specs) ? (product.specs as { label: string; value: string }[]) : [];
   const rows: [string, string | null | undefined][] = [
     [t("maker"), product.manufacturer?.name],
@@ -106,6 +111,9 @@ export default async function ProductPage({ params }: Props) {
               priceLabel: km(v.price.toNumber()),
             }))}
           />
+          {showColours && product.line && (
+            <LineColours line={product.line.name} colours={colours} currentId={product.id} />
+          )}
           {rows.some(([, value]) => value) && (
             <>
               <hr className="hk-rule mt-8 mb-5" />

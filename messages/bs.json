@@ -387,6 +387,8 @@
     "shade": "Broj nijanse",
     "finish": "Izgled",
     "related": "Iz iste police",
+    "lineColours": "{line}: {count} boja",
+    "otherColours": "Ostale",
     "searchTitle": "Pretraga",
     "allResults": "Svi rezultati ({count})",
     "searchEmpty": "Ništa ne odgovara upitu „{q}“.",

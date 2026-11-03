@@ -235,6 +235,7 @@ export async function getPublishedProduct(slug: string) {
       opacity: true,
       binder: true,
       categoryId: true,
+      lineId: true,
       category: { select: { slug: true, name: true } },
       manufacturer: { select: { slug: true, name: true } },
       line: { select: { name: true } },
@@ -244,6 +245,27 @@ export async function getPublishedProduct(slug: string) {
         select: { storageKey: true, alt: true, width: true, height: true },
       },
     },
+  });
+}
+
+/** The colours of one line, for moving between them on a product page. */
+export function listLineColours(lineId: number) {
+  return db.product.findMany({
+    where: {
+      ...catalogWhere({}),
+      lineId,
+      NOT: { colourName: null, colourNameMaker: null },
+    },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      colourName: true,
+      colourNameMaker: true,
+      colourFamily: true,
+      variants: { where: { active: true }, select: { stockQty: true } },
+    },
+    orderBy: [{ colourName: "asc" }, { name: "asc" }],
   });
 }
 
