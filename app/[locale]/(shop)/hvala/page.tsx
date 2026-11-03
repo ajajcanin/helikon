@@ -6,6 +6,9 @@ import { getCompanySettings } from "@/server/company";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
+/** Reads the address, so it can never be a single cached page. */
+export const dynamic = "force-dynamic";
+
 /** Shows only what's in the address: no order data is read, so nobody can look up an order by guessing a number. */
 export default async function ThanksPage({ searchParams }: { searchParams: SearchParams }) {
   const sp = await searchParams;

@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 import { ShopChrome } from "@/features/settings/components/ShopChrome";
 
-/** Always read fresh: stock and prices must be current. */
-export const dynamic = "force-dynamic";
-
+/** Each page decides how it renders: see `revalidate` on the cached ones. */
 export default function ShopLayout({ children }: { children: ReactNode }) {
   return <ShopChrome>{children}</ShopChrome>;
 }

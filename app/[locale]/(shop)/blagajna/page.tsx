@@ -3,6 +3,9 @@ import { CheckoutForm } from "@/features/orders/components/CheckoutForm";
 import { db } from "@/server/db";
 import { env } from "@/server/env";
 
+/** Always read fresh. */
+export const dynamic = "force-dynamic";
+
 export default async function CheckoutPage() {
   const [t, rates] = await Promise.all([
     getTranslations("shop"),

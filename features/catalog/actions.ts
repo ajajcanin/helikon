@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { adminAction } from "@/server/admin/action";
+import { adminAction, SHOP_UNCHANGED } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { finishUpload, requestUpload } from "@/server/uploads";
 import { createCategory, deleteCategory, moveCategory, renameCategory, shiftCategory } from "./categories";
@@ -131,6 +131,7 @@ export const changeStock = adminAction(
 export const requestProductPhoto = adminAction(
   z.object({ contentType: z.string().max(40), size: z.number().int().positive() }),
   async (input) => ({ data: await requestUpload(input) }),
+  SHOP_UNCHANGED,
 );
 
 export const finishProductPhoto = adminAction(

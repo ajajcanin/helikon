@@ -11,7 +11,8 @@ export default function proxy(req: NextRequest) {
   if (process.env.MAINTENANCE_MODE === "true" && !isAdmin && pathname !== "/odrzavanje") {
     return NextResponse.rewrite(new URL(`/${routing.defaultLocale}/odrzavanje`, req.url), {
       status: 503,
-      headers: { "retry-after": "3600" },
+      // The page is static, but a 503 must never be stored, or it could outlast the maintenance.
+      headers: { "retry-after": "3600", "cache-control": "no-store" },
     });
   }
   return intl(req);

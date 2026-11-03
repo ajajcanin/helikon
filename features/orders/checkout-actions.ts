@@ -6,6 +6,7 @@ import { z } from "zod";
 import { db } from "@/server/db";
 import { logger } from "@/server/logger";
 import { clientIp, rateLimit } from "@/server/rate-limit";
+import { refreshShop } from "@/server/shop-cache";
 import { verifyTurnstile } from "@/server/turnstile";
 import { sendOrderEmails } from "./notify";
 import { OrderError, placeOrder, placeOrderSchema } from "./place-order";
@@ -95,6 +96,8 @@ export async function submitOrder(raw: unknown, turnstileToken: string): Promise
     return { ok: false, error: "rate_limited" };
   try {
     const order = await placeOrder(input.data);
+    // Stock changed, and product pages are cached.
+    refreshShop();
     // After the answer, so a slow or failing mail service can't hold up or undo an order.
     after(() =>
       sendOrderEmails(order.id).catch((err) => logger.error({ err, order: order.id }, "order e-mail failed")),

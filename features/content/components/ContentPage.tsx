@@ -5,24 +5,22 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { PlainText } from "@/lib/plain-text";
 import interior from "@/public/images/shop-interior.png";
-import { CONTENT_PAGES, getPageContent } from "@/server/content";
+import { CONTENT_PAGES, type ContentPageSlug, getPageContent } from "@/server/content";
 
-type Props = { params: Promise<{ stranica: string }> };
-
-async function load(slug: string) {
+async function load(slug: ContentPageSlug) {
   const page = CONTENT_PAGES.find((p) => p.slug === slug);
   if (!page) return null;
   const content = await getPageContent(slug);
   return content.body?.trim() ? { title: content.title?.trim() || page.label, body: content.body } : null;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const page = await load((await params).stranica);
+export async function contentMetadata(slug: ContentPageSlug): Promise<Metadata> {
+  const page = await load(slug);
   return page ? { title: `${page.title} · Helikon` } : {};
 }
 
-export default async function ContentPage({ params }: Props) {
-  const slug = (await params).stranica;
+/** A page staff write in the admin. It stays hidden until it has text. */
+export async function ContentPage({ slug }: { slug: ContentPageSlug }) {
   const page = await load(slug);
   if (!page) notFound();
   if (slug === "o-nama") return <AboutPage title={page.title} body={page.body} />;

@@ -13,6 +13,12 @@ import { getPublishedProduct, listLineColours, listRelatedProducts } from "@/ser
 
 type Props = { params: Promise<{ slug: string }> };
 
+export const revalidate = 600;
+
+export function generateStaticParams() {
+  return [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getPublishedProduct((await params).slug);
   return product
@@ -24,7 +30,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
-  const product = await getPublishedProduct((await params).slug);
+  const { slug } = await params;
+  const product = await getPublishedProduct(slug);
   if (!product) notFound();
   const t = await getTranslations("shop");
   const [related, colours] = await Promise.all([

@@ -2,6 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { CartView } from "@/features/orders/components/CartView";
 import { listCategoryTree } from "@/server/public/catalog";
 
+/** Always read fresh. */
+export const dynamic = "force-dynamic";
+
 export default async function CartPage() {
   const [t, tree] = await Promise.all([getTranslations("shop"), listCategoryTree()]);
   return (

@@ -26,6 +26,29 @@ Haen is a catalogue with inquiries and no checkout. Helikon sells online, so com
 | Security headers | CSP and others in `next.config.ts`                                                                      | Vercel already sends HSTS                                                                                                     |
 | Lint and tooling | Biome with layer rules, Lefthook, commitlint, pinned versions                                           | Same as Haen                                                                                                                  |
 
+## Rendering
+
+Pages that show the same thing to everyone are cached with ISR: home, O nama and other content pages, contact, the
+journal and its tags, articles and product pages (`export const revalidate = 600`). Pages built from the address or live
+data stay server-rendered: catalogue, categories, cart, checkout, thank you and admin. The not-found page for unknown
+addresses and `/odrzavanje` are SSG, because neither reads the database.
+
+- **Refreshing:** `refreshShop()` in `server/shop-cache.ts` drops every cached shop page. `adminAction` calls it after each
+  write, unless marked `SHOP_UNCHANGED`, and so does placing an order. Anything else that changes shop data, such as a
+  Pantheon connector or a script, must call it too, or the change can take a while to show.
+- **Prices and stock:** checkout re-reads them in its transaction, so a cached page can't sell at a wrong price.
+- **Builds:** the root `generateStaticParams` returns nothing, so pages are built on their first visit and a deployment
+  never needs the database. A page that depends on the request must then set `dynamic = "force-dynamic"`, such as one
+  reading `searchParams`. Otherwise it fails with a 500 in production only, because `next dev` and the build don't show
+  it. Check new pages on a production build.
+- **Locale:** `i18n/request.ts` reads it from `next/root-params`, which can't be used directly inside server actions or
+  route handlers, so translate in server components.
+- **No custom cache settings:** Vercel needs no `cacheHandler`. Several servers elsewhere would need a shared one. Don't
+  cache HTML in Cloudflare, because refreshing only clears Vercel's cache.
+
+Planned: cache plain catalogue and category pages with ISR, keeping filtered views on SSR, and refresh by tag instead of
+clearing every page.
+
 ## Open decisions
 
 - **Analytics:** Google Analytics stays until decided. Recommended: Cloudflare Web Analytics, which is cookieless,

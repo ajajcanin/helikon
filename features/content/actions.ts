@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { adminAction } from "@/server/admin/action";
+import { adminAction, SHOP_UNCHANGED } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { homeContentSchema } from "@/server/content";
 import { finishUpload, requestUpload } from "@/server/uploads";
@@ -61,8 +61,13 @@ export const removeArticle = adminAction(
 export const requestArticleImage = adminAction(
   z.object({ contentType: z.string().max(40), size: z.number().int().positive() }),
   async (input) => ({ data: await requestUpload(input) }),
+  SHOP_UNCHANGED,
 );
 
-export const finishArticleImage = adminAction(z.object({ key: z.string().max(80) }), async ({ key }) => ({
-  data: await finishUpload(key, "articles"),
-}));
+export const finishArticleImage = adminAction(
+  z.object({ key: z.string().max(80) }),
+  async ({ key }) => ({
+    data: await finishUpload(key, "articles"),
+  }),
+  SHOP_UNCHANGED,
+);

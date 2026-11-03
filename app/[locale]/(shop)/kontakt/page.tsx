@@ -1,6 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { getCompanySettings } from "@/server/company";
 
+export const revalidate = 600;
+
 export default async function ContactPage() {
   const [t, company] = await Promise.all([getTranslations("shop"), getCompanySettings()]);
   const heading = "mb-3 font-ui text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]";

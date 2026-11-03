@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Cinzel, EB_Garamond, Inter } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { env } from "@/server/env";
 import "@/styles/globals.css";
@@ -58,14 +58,14 @@ export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Pr
   };
 }
 
+/** Empty, so pages are built on their first visit and a deployment never needs the database. */
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return [];
 }
 
 export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
   if (!hasLocale(routing.locales, locale)) notFound();
-  setRequestLocale(locale);
   const gaId = env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
   return (

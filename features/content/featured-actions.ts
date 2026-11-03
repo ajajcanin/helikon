@@ -1,14 +1,18 @@
 "use server";
 
 import { z } from "zod";
-import { adminAction, UserError } from "@/server/admin/action";
+import { adminAction, SHOP_UNCHANGED, UserError } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { FEATURED_MAX } from "@/server/content";
 import { saveFeatured, searchFeaturedCandidates, topProducts } from "./featured";
 
-export const findFeaturedCandidates = adminAction(z.object({ q: z.string().max(100) }), async ({ q }) => ({
-  data: await searchFeaturedCandidates(q),
-}));
+export const findFeaturedCandidates = adminAction(
+  z.object({ q: z.string().max(100) }),
+  async ({ q }) => ({
+    data: await searchFeaturedCandidates(q),
+  }),
+  SHOP_UNCHANGED,
+);
 
 export const saveFeaturedOrder = adminAction(
   z.object({ ids: z.array(z.number().int().positive()).max(FEATURED_MAX) }),

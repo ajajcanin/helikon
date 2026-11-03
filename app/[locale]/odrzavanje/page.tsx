@@ -5,6 +5,9 @@ import { Heading } from "@/components/atoms/Heading";
 
 export const metadata: Metadata = { robots: { index: false, follow: false } };
 
+/** Never reads the database, so it can be built once. */
+export const dynamic = "force-static";
+
 export default function Maintenance() {
   const t = useTranslations("maintenance");
   return (
