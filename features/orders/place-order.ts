@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Prisma } from "@/generated/prisma/client";
 import { db } from "@/server/db";
 import { nextNumber } from "@/server/numbers";
+import { CATALOG, productTag } from "@/server/shop-cache";
 import { computeTotals } from "./totals";
 
 export const placeOrderSchema = z.object({
@@ -146,4 +147,26 @@ export async function placeOrder(raw: PlaceOrderInput) {
     }
     throw e;
   }
+}
+
+/**
+ * What an order changes in cached pages: its products' own pages always. Lists only show whether something can be
+ * bought, so they refresh only when a product has just sold out.
+ */
+export async function orderRefreshTags(orderId: number) {
+  const lines = await db.orderLine.findMany({
+    where: { orderId },
+    select: {
+      variant: {
+        select: {
+          product: {
+            select: { slug: true, variants: { where: { active: true }, select: { stockQty: true } } },
+          },
+        },
+      },
+    },
+  });
+  const products = lines.map((line) => line.variant.product);
+  const soldOut = products.some((product) => product.variants.every((v) => v.stockQty <= 0));
+  return [...products.map((product) => productTag(product.slug)), ...(soldOut ? [CATALOG] : [])];
 }

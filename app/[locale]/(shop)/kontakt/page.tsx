@@ -1,10 +1,10 @@
 import { getTranslations } from "next-intl/server";
-import { getCompanySettings } from "@/server/company";
+import { cachedCompany } from "@/server/public/cached";
 
-export const revalidate = 600;
+export const revalidate = 3600;
 
 export default async function ContactPage() {
-  const [t, company] = await Promise.all([getTranslations("shop"), getCompanySettings()]);
+  const [t, company] = await Promise.all([getTranslations("shop"), cachedCompany()]);
   const heading = "mb-3 font-ui text-[11px] uppercase tracking-[0.2em] text-[var(--text-muted)]";
   const hours = company.openingHours.split("\n").filter(Boolean);
   const query = encodeURIComponent(company.mapQuery);

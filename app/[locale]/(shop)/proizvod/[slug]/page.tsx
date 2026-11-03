@@ -9,18 +9,18 @@ import { AddToCart } from "@/features/orders/components/AddToCart";
 import { Link } from "@/i18n/navigation";
 import { displayName, swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
-import { getPublishedProduct, listLineColours, listRelatedProducts } from "@/server/public/catalog";
+import { cachedLineColours, cachedProduct, cachedRelated } from "@/server/public/cached";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 600;
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await getPublishedProduct((await params).slug);
+  const product = await cachedProduct((await params).slug);
   return product
     ? {
         title: `${displayName(product)} · ${product.category?.name ?? "Helikon"} · Helikon`,
@@ -31,12 +31,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getPublishedProduct(slug);
+  const product = await cachedProduct(slug);
   if (!product) notFound();
   const t = await getTranslations("shop");
   const [related, colours] = await Promise.all([
-    listRelatedProducts(product.id, product.categoryId),
-    product.lineId ? listLineColours(product.lineId) : [],
+    cachedRelated(product.id, product.categoryId),
+    product.lineId ? cachedLineColours(product.lineId) : [],
   ]);
   const showColours = colours.length > 1 && colours.some((c) => c.id === product.id);
   const specs = Array.isArray(product.specs) ? (product.specs as { label: string; value: string }[]) : [];
@@ -115,7 +115,7 @@ export default async function ProductPage({ params }: Props) {
               sku: v.sku,
               size: v.size,
               stockQty: v.stockQty,
-              priceLabel: km(v.price.toNumber()),
+              priceLabel: km(v.price),
             }))}
           />
           {showColours && product.line && (

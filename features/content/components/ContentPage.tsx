@@ -5,12 +5,13 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { PlainText } from "@/lib/plain-text";
 import interior from "@/public/images/shop-interior.png";
-import { CONTENT_PAGES, type ContentPageSlug, getPageContent } from "@/server/content";
+import { CONTENT_PAGES, type ContentPageSlug } from "@/server/content";
+import { cachedPageContent } from "@/server/public/cached";
 
 async function load(slug: ContentPageSlug) {
   const page = CONTENT_PAGES.find((p) => p.slug === slug);
   if (!page) return null;
-  const content = await getPageContent(slug);
+  const content = await cachedPageContent(slug);
   return content.body?.trim() ? { title: content.title?.trim() || page.label, body: content.body } : null;
 }
 

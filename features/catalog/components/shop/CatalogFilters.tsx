@@ -71,7 +71,7 @@ export function CatalogFilters({ pathname, families, mediums, selected }: Props)
           </ul>
         </div>
       )}
-      <FilterForm className="flex flex-col gap-4">
+      <FilterForm pathname={pathname} className="flex flex-col gap-4">
         {selected.q && <input type="hidden" name="q" value={selected.q} />}
         {selected.family && <input type="hidden" name="boja" value={selected.family} />}
         {mediums.length > 1 && (

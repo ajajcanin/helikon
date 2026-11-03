@@ -11,7 +11,7 @@ export type CardProduct = Awaited<ReturnType<typeof listPublishedProducts>>[numb
 export async function ProductCard({ product }: { product: CardProduct }) {
   const t = await getTranslations("shop");
   const photo = product.photos[0];
-  const prices = product.variants.map((v) => v.price.toNumber());
+  const prices = product.variants.map((v) => v.price);
   const from = prices.length ? Math.min(...prices) : 0;
   const several = new Set(prices).size > 1;
   const inStock = product.variants.some((v) => v.stockQty > 0);

@@ -72,6 +72,12 @@ export async function listPublishedPages() {
   });
 }
 
+/** What the menu and footer show from content, to tell whether a save changed them. */
+export async function navState() {
+  const [pages, articles] = await Promise.all([listPublishedPages(), countPublishedArticles()]);
+  return JSON.stringify([pages.map((p) => p.slug), articles > 0]);
+}
+
 const articleSelect = {
   slug: true,
   title: true,

@@ -1,10 +1,12 @@
 "use server";
 
 import { z } from "zod";
-import { adminAction } from "@/server/admin/action";
+import { adminAction, SHOP_UNCHANGED } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
+import { CATALOG } from "@/server/shop-cache";
 import { createDeliveryRate, deleteDeliveryRate, setPaymentStatus, updateDeliveryRate } from "./admin";
 import { changeOrderStatus } from "./change-status";
+import { returnsStock } from "./status";
 
 const schema = z.object({
   orderId: z.number().int().positive(),
@@ -14,7 +16,7 @@ const schema = z.object({
 
 export const setOrderStatus = adminAction(schema, async ({ orderId, to, note }, user) => {
   const order = await changeOrderStatus(orderId, to, actorOf(user), note);
-  return { data: { status: order.status } };
+  return { data: { status: order.status }, refresh: returnsStock(to) ? [CATALOG] : [] };
 });
 
 const id = z.number().int().positive();
@@ -25,6 +27,7 @@ export const changePayment = adminAction(
     await setPaymentStatus(id, to, actorOf(user));
     return { data: undefined };
   },
+  SHOP_UNCHANGED,
 );
 
 const delivery = z.object({
@@ -34,17 +37,30 @@ const delivery = z.object({
   active: z.boolean(),
 });
 
-export const addDelivery = adminAction(delivery, async (input, user) => {
-  await createDeliveryRate(input, actorOf(user));
-  return { data: undefined };
-});
+// Delivery rates only show at checkout, which is never cached.
+export const addDelivery = adminAction(
+  delivery,
+  async (input, user) => {
+    await createDeliveryRate(input, actorOf(user));
+    return { data: undefined };
+  },
+  SHOP_UNCHANGED,
+);
 
-export const editDelivery = adminAction(delivery.extend({ id }), async ({ id, ...input }, user) => {
-  await updateDeliveryRate(id, input, actorOf(user));
-  return { data: undefined };
-});
+export const editDelivery = adminAction(
+  delivery.extend({ id }),
+  async ({ id, ...input }, user) => {
+    await updateDeliveryRate(id, input, actorOf(user));
+    return { data: undefined };
+  },
+  SHOP_UNCHANGED,
+);
 
-export const removeDelivery = adminAction(z.object({ id }), async ({ id }, user) => {
-  await deleteDeliveryRate(id, actorOf(user));
-  return { data: undefined };
-});
+export const removeDelivery = adminAction(
+  z.object({ id }),
+  async ({ id }, user) => {
+    await deleteDeliveryRate(id, actorOf(user));
+    return { data: undefined };
+  },
+  SHOP_UNCHANGED,
+);

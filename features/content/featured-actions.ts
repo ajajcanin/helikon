@@ -4,6 +4,7 @@ import { z } from "zod";
 import { adminAction, SHOP_UNCHANGED, UserError } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { FEATURED_MAX } from "@/server/content";
+import { CONTENT } from "@/server/shop-cache";
 import { saveFeatured, searchFeaturedCandidates, topProducts } from "./featured";
 
 export const findFeaturedCandidates = adminAction(
@@ -17,6 +18,7 @@ export const findFeaturedCandidates = adminAction(
 export const saveFeaturedOrder = adminAction(
   z.object({ ids: z.array(z.number().int().positive()).max(FEATURED_MAX) }),
   async ({ ids }, user) => ({ data: await saveFeatured(ids, actorOf(user)) }),
+  { refresh: [CONTENT] },
 );
 
 export const fillFeatured = adminAction(
@@ -34,4 +36,5 @@ export const fillFeatured = adminAction(
         : [],
     };
   },
+  { refresh: [CONTENT] },
 );

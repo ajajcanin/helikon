@@ -27,6 +27,17 @@ const cardSelect = {
   },
 } satisfies Prisma.ProductSelect;
 
+/** Prices as numbers: everything that leaves this file must survive being stored as JSON. */
+type WithPlainPrices<P extends { variants: { price: unknown }[] }> = Omit<P, "variants"> & {
+  variants: (Omit<P["variants"][number], "price"> & { price: number })[];
+};
+
+const withPlainPrices = <P extends { variants: { price: { toNumber(): number } }[] }>(product: P) =>
+  ({
+    ...product,
+    variants: product.variants.map((v) => ({ ...v, price: v.price.toNumber() })),
+  }) as unknown as WithPlainPrices<P>;
+
 export type CatalogFilters = {
   categorySlug?: string;
   family?: string;
@@ -122,9 +133,10 @@ export async function listPublishedProducts(filters: CatalogFilters = {}) {
     });
     const ids = ranked.map((r) => r.productId);
     const rows = await db.product.findMany({ where: { id: { in: ids } }, select: cardSelect });
-    return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
+    return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
   }
-  return db.product.findMany({ where, select: cardSelect, orderBy: { name: "asc" }, take, skip });
+  const rows = await db.product.findMany({ where, select: cardSelect, orderBy: { name: "asc" }, take, skip });
+  return rows.map(withPlainPrices);
 }
 
 /** Staff's chosen products, in their order. Anything hidden or out of stock is simply left out. */
@@ -133,7 +145,7 @@ export async function listFeaturedProducts(ids: number[]) {
     where: { ...catalogWhere({ inStock: true }), id: { in: ids } },
     select: cardSelect,
   });
-  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
+  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
 }
 
 /** Products attached to an article, in order, including sold-out ones: the text around them still makes sense. */
@@ -143,7 +155,7 @@ export async function listProductsForArticle(ids: number[]) {
     where: { ...catalogWhere({}), id: { in: ids } },
     select: cardSelect,
   });
-  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []);
+  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
 }
 
 /** The first matches for the search box, with only what its list shows. */
@@ -155,7 +167,7 @@ export async function searchSuggestions(q: string, take = 6) {
   return {
     total,
     rows: rows.map((product) => {
-      const prices = product.variants.map((v) => v.price.toNumber());
+      const prices = product.variants.map((v) => v.price);
       return {
         slug: product.slug,
         name: displayName(product),
@@ -230,7 +242,7 @@ export function getPublicCategory(slug: string) {
 }
 
 export async function getPublishedProduct(slug: string) {
-  return db.product.findFirst({
+  const product = await db.product.findFirst({
     where: { slug, status: "PUBLISHED" },
     select: {
       id: true,
@@ -262,6 +274,7 @@ export async function getPublishedProduct(slug: string) {
       },
     },
   });
+  return product && withPlainPrices(product);
 }
 
 /** The colours of one line, for moving between them on a product page. */
@@ -285,12 +298,13 @@ export function listLineColours(lineId: number) {
   });
 }
 
-export function listRelatedProducts(productId: number, categoryId: number | null, take = 4) {
-  if (!categoryId) return Promise.resolve([]);
-  return db.product.findMany({
+export async function listRelatedProducts(productId: number, categoryId: number | null, take = 4) {
+  if (!categoryId) return [];
+  const rows = await db.product.findMany({
     where: { ...catalogWhere({}), categoryId, id: { not: productId } },
     select: cardSelect,
     orderBy: { name: "asc" },
     take,
   });
+  return rows.map(withPlainPrices);
 }

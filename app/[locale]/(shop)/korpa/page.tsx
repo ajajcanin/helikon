@@ -1,12 +1,12 @@
 import { getTranslations } from "next-intl/server";
 import { CartView } from "@/features/orders/components/CartView";
-import { listCategoryTree } from "@/server/public/catalog";
+import { cachedCategoryTree } from "@/server/public/cached";
 
 /** Always read fresh. */
 export const dynamic = "force-dynamic";
 
 export default async function CartPage() {
-  const [t, tree] = await Promise.all([getTranslations("shop"), listCategoryTree()]);
+  const [t, tree] = await Promise.all([getTranslations("shop"), cachedCategoryTree()]);
   return (
     <div className="mx-auto max-w-[1000px] px-6 pt-12 pb-[88px]">
       <span className="hk-eyebrow">{t("cartEyebrow")}</span>

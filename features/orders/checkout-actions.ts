@@ -9,7 +9,7 @@ import { clientIp, rateLimit } from "@/server/rate-limit";
 import { refreshShop } from "@/server/shop-cache";
 import { verifyTurnstile } from "@/server/turnstile";
 import { sendOrderEmails } from "./notify";
-import { OrderError, placeOrder, placeOrderSchema } from "./place-order";
+import { OrderError, orderRefreshTags, placeOrder, placeOrderSchema } from "./place-order";
 import { computeTotals } from "./totals";
 
 const cartSchema = z
@@ -96,8 +96,12 @@ export async function submitOrder(raw: unknown, turnstileToken: string): Promise
     return { ok: false, error: "rate_limited" };
   try {
     const order = await placeOrder(input.data);
-    // Stock changed, and product pages are cached.
-    refreshShop();
+    // Stock changed. A failure here must not look like a failed order: the page catches up within the hour.
+    try {
+      refreshShop(await orderRefreshTags(order.id));
+    } catch (err) {
+      logger.error({ err, order: order.id }, "order page refresh failed");
+    }
     // After the answer, so a slow or failing mail service can't hold up or undo an order.
     after(() =>
       sendOrderEmails(order.id).catch((err) => logger.error({ err, order: order.id }, "order e-mail failed")),

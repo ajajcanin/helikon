@@ -12,19 +12,18 @@ import {
 import { ArticleBody } from "@/features/content/components/ArticleBody";
 import { Link } from "@/i18n/navigation";
 import { hasMediaStorage, mediaUrl } from "@/lib/media";
-import { getPublishedArticle } from "@/server/content";
-import { listProductsForArticle } from "@/server/public/catalog";
+import { cachedArticle, cachedArticleProducts } from "@/server/public/cached";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 600;
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const article = await getPublishedArticle((await params).slug);
+  const article = await cachedArticle((await params).slug);
   if (!article) return {};
   const image =
     hasMediaStorage() && article.coverKey && article.coverWidth
@@ -44,14 +43,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
-  const article = await getPublishedArticle(slug);
+  const article = await cachedArticle(slug);
   if (!article) notFound();
   const [t, format] = await Promise.all([getTranslations("shop"), getFormatter()]);
   // Checked again on the way out, in case something other than the form ever wrote this row.
   const doc: ArticleNode = sanitizeDoc(article.content);
   const inText = docProductIds(doc);
   const ids = [...new Set([...inText, ...article.productIds])];
-  const products = await listProductsForArticle(ids);
+  const products = await cachedArticleProducts(ids);
   return (
     <article className="pt-10 pb-[88px]">
       <div className="mx-auto max-w-[720px] px-6">

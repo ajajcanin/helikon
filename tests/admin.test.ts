@@ -33,7 +33,7 @@ import {
   setPaymentStatus,
 } from "@/features/orders/admin";
 import { changeOrderStatus } from "@/features/orders/change-status";
-import { placeOrder } from "@/features/orders/place-order";
+import { orderRefreshTags, placeOrder } from "@/features/orders/place-order";
 import { saveCompanySettings } from "@/features/settings/settings";
 import { createUser, setUserActive, setUserPassword, setUserRole } from "@/features/users/users";
 import { getCompanySettings } from "@/server/company";
@@ -180,6 +180,18 @@ describe("products list", () => {
 
 describe("orders admin and delivery", () => {
   beforeEach(resetDb);
+
+  it("refreshes a product's page after an order, and lists only when it sells out", async () => {
+    const d = await seedDelivery("0.00");
+    const plenty = await seedVariant({ price: "10.00", stock: 5 });
+    const last = await seedVariant({ price: "10.00", stock: 1 });
+    const slugOf = async (id: number) =>
+      (await db.product.findUniqueOrThrow({ where: { id }, select: { slug: true } })).slug;
+    const first = await placeOrder(orderInput(plenty.id, d.id, 1, "10.00"));
+    expect(await orderRefreshTags(first.id)).toEqual([`product:${await slugOf(plenty.productId)}`]);
+    const second = await placeOrder(orderInput(last.id, d.id, 1, "10.00"));
+    expect(await orderRefreshTags(second.id)).toEqual([`product:${await slugOf(last.productId)}`, "catalog"]);
+  });
 
   it("payment moves one way only", async () => {
     const v = await seedVariant({ price: "10.00" });

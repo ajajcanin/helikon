@@ -3,16 +3,31 @@
 import { z } from "zod";
 import { adminAction, SHOP_UNCHANGED } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
-import { homeContentSchema } from "@/server/content";
+import { homeContentSchema, navState } from "@/server/content";
+import { CONTENT, JOURNAL, NAV } from "@/server/shop-cache";
 import { finishUpload, requestUpload } from "@/server/uploads";
 import { createArticle, deleteArticle, saveHomeContent, savePageContent, updateArticle } from "./content";
 
-export const saveHome = adminAction(homeContentSchema, async (input, user) => {
+/** Saved content refreshes its own pages. The menu refreshes only if a link in it appears or goes away. */
+const contentAction =
+  (tag: string): typeof adminAction =>
+  (schema, handler, opts) =>
+    adminAction(
+      schema,
+      async (input, user) => {
+        const before = await navState();
+        const result = await handler(input, user);
+        return { ...result, refresh: (await navState()) === before ? [tag] : [tag, NAV] };
+      },
+      opts,
+    );
+
+export const saveHome = contentAction(CONTENT)(homeContentSchema, async (input, user) => {
   await saveHomeContent(input, actorOf(user));
   return { data: undefined };
 });
 
-export const savePage = adminAction(
+export const savePage = contentAction(CONTENT)(
   z.object({ slug: z.string().max(40), title: z.string().max(120), body: z.string().max(50000) }),
   async ({ slug, ...input }, user) => {
     await savePageContent(slug, input, actorOf(user));
@@ -37,12 +52,12 @@ const article = z.object({
   productIds: z.array(z.number().int().positive()).max(50),
 });
 
-export const addArticle = adminAction(article, async (input, user) => {
+export const addArticle = contentAction(JOURNAL)(article, async (input, user) => {
   const created = await createArticle(input, actorOf(user));
   return { data: { id: created.id } };
 });
 
-export const editArticle = adminAction(
+export const editArticle = contentAction(JOURNAL)(
   article.extend({ id: z.number().int().positive() }),
   async ({ id, ...input }, user) => {
     await updateArticle(id, input, actorOf(user));
@@ -50,7 +65,7 @@ export const editArticle = adminAction(
   },
 );
 
-export const removeArticle = adminAction(
+export const removeArticle = contentAction(JOURNAL)(
   z.object({ id: z.number().int().positive() }),
   async ({ id }, user) => {
     await deleteArticle(id, actorOf(user));

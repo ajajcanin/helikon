@@ -2,17 +2,20 @@ import type { ReactNode } from "react";
 import { SmearFilter } from "@/components/atoms/PaintSwatch";
 import { ShopFooter } from "@/components/organisms/ShopFooter";
 import { ShopHeader } from "@/components/organisms/ShopHeader";
-import { getCompanySettings } from "@/server/company";
-import { countPublishedArticles, listPublishedPages } from "@/server/content";
-import { listCategoryTree } from "@/server/public/catalog";
+import {
+  cachedArticleCount,
+  cachedCategoryTree,
+  cachedCompany,
+  cachedPublishedPages,
+} from "@/server/public/cached";
 
 /** Header and footer of every shop page, always in the dark theme. */
 export async function ShopChrome({ children }: { children: ReactNode }) {
   const [tree, company, pages, articles] = await Promise.all([
-    listCategoryTree(),
-    getCompanySettings(),
-    listPublishedPages(),
-    countPublishedArticles(),
+    cachedCategoryTree(),
+    cachedCompany(),
+    cachedPublishedPages(),
+    cachedArticleCount(),
   ]);
   const categories = tree.map((c) => ({
     slug: c.slug,

@@ -4,6 +4,8 @@ import { routing } from "./i18n/routing";
 
 const intl = createMiddleware(routing);
 
+const FILTERABLE = /^\/(proizvodi|kategorija\/[^/]+)$/;
+
 export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const isAdmin = pathname === "/admin" || pathname.startsWith("/admin/");
@@ -14,6 +16,15 @@ export default function proxy(req: NextRequest) {
       // The page is static, but a 503 must never be stored, or it could outlast the maintenance.
       headers: { "retry-after": "3600", "cache-control": "no-store" },
     });
+  }
+  // Plain lists are cached pages. An address with filters goes to the live version of the same list.
+  const { search } = req.nextUrl;
+  if (search && FILTERABLE.test(pathname)) {
+    return NextResponse.rewrite(new URL(`/${routing.defaultLocale}/filtrirano${pathname}${search}`, req.url));
+  }
+  // The live version has no address of its own, so it can't appear as a duplicate page.
+  if (pathname === "/filtrirano" || pathname.startsWith("/filtrirano/")) {
+    return NextResponse.rewrite(new URL(`/${routing.defaultLocale}/nepostoji`, req.url));
   }
   return intl(req);
 }

@@ -3,6 +3,7 @@ import { FIELD_CLASS } from "@/components/atoms/Field";
 import { FilterForm } from "@/components/molecules/FilterForm";
 import { Link } from "@/i18n/navigation";
 import { activeQuery, pageParam, param, type SearchParams } from "@/lib/search-params";
+import { cachedFamilies, cachedMediums, cachedProductCount, cachedProducts } from "@/server/public/cached";
 import {
   countPublishedProducts,
   familiesIn,
@@ -30,9 +31,19 @@ export async function CatalogPage({
   searchParams,
 }: {
   category: Category;
-  searchParams: SearchParams;
+  /** Left out on the plain, cached list. */
+  searchParams?: SearchParams;
 }) {
-  const sp = await searchParams;
+  const sp = searchParams ? await searchParams : {};
+  // The plain list reads through the cache. Filtered views are live, so they always show current stock.
+  const read = searchParams
+    ? { listPublishedProducts, countPublishedProducts, familiesIn, mediumsIn }
+    : {
+        listPublishedProducts: cachedProducts,
+        countPublishedProducts: cachedProductCount,
+        familiesIn: cachedFamilies,
+        mediumsIn: cachedMediums,
+      };
   const t = await getTranslations("shop");
   const q = param(sp.q).trim().slice(0, 100);
   const family = param(sp.boja);
@@ -56,10 +67,10 @@ export async function CatalogPage({
     sort: SORTS[sortKey as keyof typeof SORTS] ?? ("name" as const),
   };
   const [products, total, families, mediums] = await Promise.all([
-    listPublishedProducts({ ...filters, take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE }),
-    countPublishedProducts(filters),
-    familiesIn(category.slug || undefined, q || undefined),
-    mediumsIn(category.slug || undefined, q || undefined),
+    read.listPublishedProducts({ ...filters, take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE }),
+    read.countPublishedProducts(filters),
+    read.familiesIn(category.slug || undefined, q || undefined),
+    read.mediumsIn(category.slug || undefined, q || undefined),
   ]);
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const query = activeQuery({ q, boja: family, medij: medium, zaliha: inStock ? "da" : "", red: sortKey });
@@ -129,7 +140,7 @@ export async function CatalogPage({
           </div>
         </aside>
         <div>
-          <FilterForm className="mb-4">
+          <FilterForm pathname={pathname} className="mb-4">
             <input
               name="q"
               type="search"

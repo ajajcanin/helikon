@@ -2,7 +2,7 @@ import "server-only";
 import type { z } from "zod";
 import type { Role } from "@/generated/prisma/enums";
 import { logger } from "@/server/logger";
-import { refreshShop } from "@/server/shop-cache";
+import { EVERYTHING, refreshShop } from "@/server/shop-cache";
 import { type AdminUser, ForbiddenError, requireRole } from "./session";
 
 export type ActionResult<T = undefined> =
@@ -15,8 +15,11 @@ export type ActionResult<T = undefined> =
  */
 export function adminAction<S extends z.ZodType, T>(
   schema: S,
-  handler: (input: z.infer<S>, user: AdminUser) => Promise<{ data: T; message?: string }>,
-  opts: { role?: Role; shopUnchanged?: boolean } = {},
+  handler: (
+    input: z.infer<S>,
+    user: AdminUser,
+  ) => Promise<{ data: T; message?: string; refresh?: readonly string[] }>,
+  opts: { role?: Role; refresh?: readonly string[] } = {},
 ) {
   return async (input: z.input<S>): Promise<ActionResult<T>> => {
     let user: AdminUser;
@@ -33,7 +36,7 @@ export function adminAction<S extends z.ZodType, T>(
     }
     try {
       const res = await handler(parsed.data, user);
-      if (!opts.shopUnchanged) refreshShop();
+      refreshShop(res.refresh ?? opts.refresh ?? EVERYTHING);
       return { ok: true, data: res.data, message: res.message };
     } catch (e) {
       if (e instanceof ForbiddenError || e instanceof UserError) return { ok: false, error: e.message };
@@ -44,7 +47,7 @@ export function adminAction<S extends z.ZodType, T>(
 }
 
 /** For actions that only read, or change nothing customers see. */
-export const SHOP_UNCHANGED = { shopUnchanged: true };
+export const SHOP_UNCHANGED = { refresh: [] };
 
 /** An error whose message can be shown to the user as-is. */
 export class UserError extends Error {}

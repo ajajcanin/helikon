@@ -5,7 +5,7 @@ import { adminAction } from "@/server/admin/action";
 import { actorOf } from "@/server/admin/session";
 import { createUser, setUserActive, setUserPassword, setUserRole } from "./users";
 
-const admin = { role: "ADMINISTRATOR" } as const;
+const admin = { role: "ADMINISTRATOR", refresh: [] } as const;
 const role = z.enum(["ADMINISTRATOR", "UREDNIK"]);
 const id = z.string().min(1);
 

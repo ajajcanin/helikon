@@ -14,14 +14,14 @@ export type InlineProduct = {
   colourNameMaker: string | null;
   colourFamily: string | null;
   category: { name: string } | null;
-  variants: { price: { toNumber(): number }; stockQty: number }[];
+  variants: { price: number; stockQty: number }[];
   photos: { storageKey: string; width: number; height: number; alt: string | null }[];
 };
 
 type Labels = { from: (price: string) => string; outOfStock: string; view: string };
 
 function InlineProductCard({ product, labels }: { product: InlineProduct; labels: Labels }) {
-  const prices = product.variants.map((v) => v.price.toNumber());
+  const prices = product.variants.map((v) => v.price);
   const from = prices.length ? km(Math.min(...prices)) : "";
   const inStock = product.variants.some((v) => v.stockQty > 0);
   const photo = product.photos[0];

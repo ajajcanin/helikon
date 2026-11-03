@@ -1,7 +1,7 @@
 import { ShopHome } from "@/features/catalog/components/shop/ShopHome";
 
-/** Cached. Saving in the admin or placing an order refreshes it at once; this catches scheduled changes. */
-export const revalidate = 600;
+/** Cached. A save refreshes what it changed; the hour catches what no save announces, like a scheduled article. */
+export const revalidate = 3600;
 
 export default function Home() {
   return <ShopHome />;

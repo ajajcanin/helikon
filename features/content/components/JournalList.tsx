@@ -3,15 +3,15 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { MediaImage } from "@/components/atoms/MediaImage";
 import { Link } from "@/i18n/navigation";
 import { slugify } from "@/lib/slug";
-import { listPublishedArticles, listPublishedTags } from "@/server/content";
+import { cachedArticles, cachedTags } from "@/server/public/cached";
 import { readingMinutes } from "../article-content";
 
 /** The journal, optionally narrowed to the tag whose address form is `tagSlug`. */
 export async function JournalList({ tagSlug }: { tagSlug?: string }) {
-  const [t, format, tags] = await Promise.all([getTranslations("shop"), getFormatter(), listPublishedTags()]);
+  const [t, format, tags] = await Promise.all([getTranslations("shop"), getFormatter(), cachedTags()]);
   const tag = tagSlug ? tags.find((name) => slugify(name) === tagSlug) : undefined;
   if (tagSlug && !tag) notFound();
-  const articles = await listPublishedArticles(tag);
+  const articles = await cachedArticles(tag);
   if (tags.length === 0 && articles.length === 0) notFound();
   const chip = "rounded-[2px] border px-3 py-1.5 font-ui text-xs uppercase tracking-[0.12em]";
   return (

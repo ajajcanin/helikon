@@ -28,14 +28,22 @@ Haen is a catalogue with inquiries and no checkout. Helikon sells online, so com
 
 ## Rendering
 
-Pages that show the same thing to everyone are cached with ISR: home, O nama and other content pages, contact, the
-journal and its tags, articles and product pages (`export const revalidate = 600`). Pages built from the address or live
-data stay server-rendered: catalogue, categories, cart, checkout, thank you and admin. The not-found page for unknown
+Pages that show the same thing to everyone are cached with ISR, refreshed by tag, with a one-hour timer as a backstop:
+home, content pages, contact, the journal and its tags, articles, product pages, and plain catalogue and category lists.
+Filtered catalogue views, cart, checkout, thank you and admin stay server-rendered. The not-found page for unknown
 addresses and `/odrzavanje` are SSG, because neither reads the database.
 
-- **Refreshing:** `refreshShop()` in `server/shop-cache.ts` drops every cached shop page. `adminAction` calls it after each
-  write, unless marked `SHOP_UNCHANGED`, and so does placing an order. Anything else that changes shop data, such as a
-  Pantheon connector or a script, must call it too, or the change can take a while to show.
+- **Reading data:** cached pages read through `server/public/cached.ts`, whose results are stored as JSON, so they must
+  be plain data. Prices are numbers, and dates are revived there.
+- **Tags:** `catalog`, `product:<slug>`, `content`, `journal`, `company` and `nav`, in `server/shop-cache.ts`. The menu and
+  footer are on every page, so clearing `nav` or `company` refreshes all of them.
+- **Refreshing:** `adminAction` clears tags after each write. An action states what it changes through `refresh`, and
+  one that doesn't clears everything, which is slower but never wrong. An order clears its products' pages, and
+  `catalog` only if a product sold out, because lists only show whether something can be bought.
+- **Outside server actions:** a Pantheon connector in a route handler, or similar, must call `revalidateTag(tag, "max")`.
+  A script writing directly to the database refreshes nothing, so its change shows within the hour.
+- **Catalogue:** one page file can't be both cached and read filters, so `proxy.ts` sends an address with parameters to
+  the live version under `filtrirano`. `FilterForm` carries the focused field across that switch.
 - **Prices and stock:** checkout re-reads them in its transaction, so a cached page can't sell at a wrong price.
 - **Builds:** the root `generateStaticParams` returns nothing, so pages are built on their first visit and a deployment
   never needs the database. A page that depends on the request must then set `dynamic = "force-dynamic"`, such as one
@@ -45,9 +53,6 @@ addresses and `/odrzavanje` are SSG, because neither reads the database.
   route handlers, so translate in server components.
 - **No custom cache settings:** Vercel needs no `cacheHandler`. Several servers elsewhere would need a shared one. Don't
   cache HTML in Cloudflare, because refreshing only clears Vercel's cache.
-
-Planned: cache plain catalogue and category pages with ISR, keeping filtered views on SSR, and refresh by tag instead of
-clearing every page.
 
 ## Open decisions
 
