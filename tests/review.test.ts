@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   confirmProducts,
   listForReview,
+  unconfirmProduct,
   updateReviewField,
   updateVariantField,
 } from "@/features/catalog/review";
@@ -14,33 +15,26 @@ const product = (id: number) => db.product.findUniqueOrThrow({ where: { id } });
 describe("confirmation page", () => {
   beforeEach(resetDb);
 
-  it("a real change saves and confirms the product, with who and what recorded", async () => {
+  it("a real change saves without confirming the product, with who and what recorded", async () => {
     const v = await seedVariant();
     const auditBefore = await db.auditLog.count({
       where: { tableName: "product", recordId: String(v.productId) },
     });
     const res = await updateReviewField(v.productId, "colourName", "Okeansko plava", actor);
-    expect(res).toEqual({ changed: true, confirmed: true });
+    expect(res).toEqual({ changed: true });
     const p = await product(v.productId);
-    expect(p).toMatchObject({ colourName: "Okeansko plava", confirmed: true, confirmedBy: "Klijent" });
-    expect(p.confirmedAt).toBeInstanceOf(Date);
+    expect(p).toMatchObject({ colourName: "Okeansko plava", confirmed: false, confirmedBy: null });
+    expect(p.confirmedAt).toBeNull();
     expect(await db.auditLog.count({ where: { tableName: "product", recordId: String(v.productId) } })).toBe(
       auditBefore + 1,
     );
   });
 
-  it("saving the same value doesn't confirm", async () => {
+  it("saving the same value changes nothing", async () => {
     const v = await seedVariant();
     await db.product.update({ where: { id: v.productId }, data: { colourName: "Plava" } });
-    expect(await updateReviewField(v.productId, "colourName", "Plava", actor)).toEqual({
-      changed: false,
-      confirmed: false,
-    });
-    expect(await updateReviewField(v.productId, "description", "  ", actor)).toEqual({
-      changed: false,
-      confirmed: false,
-    });
-    expect((await product(v.productId)).confirmed).toBe(false);
+    expect(await updateReviewField(v.productId, "colourName", "Plava", actor)).toEqual({ changed: false });
+    expect(await updateReviewField(v.productId, "description", "  ", actor)).toEqual({ changed: false });
   });
 
   it("refuses invalid values and leaves the product unconfirmed", async () => {
@@ -64,12 +58,11 @@ describe("confirmation page", () => {
     expect(row!.specs).toBe("Baza: Voda\nVrhovi: 1 mm: 6 mm");
   });
 
-  it("changing a variant's price or size confirms its product; the same price doesn't", async () => {
+  it("changing a variant's price saves it without confirming its product", async () => {
     const v = await seedVariant({ price: "240.00" });
     expect(await updateVariantField(v.id, { field: "price", value: "240,00" }, actor)).toMatchObject({
       changed: false,
     });
-    expect((await product(v.productId)).confirmed).toBe(false);
     expect(await updateVariantField(v.id, { field: "price", value: "40,00" }, actor)).toMatchObject({
       changed: true,
     });
@@ -78,7 +71,18 @@ describe("confirmation page", () => {
       include: { product: true },
     });
     expect(after.price.toString()).toBe("40");
-    expect(after.product.confirmed).toBe(true);
+    expect(after.product.confirmed).toBe(false);
+  });
+
+  it("confirms by button and can be put back on the list", async () => {
+    const v = await seedVariant();
+    expect(await confirmProducts([v.productId], actor)).toBe(1);
+    expect(await product(v.productId)).toMatchObject({ confirmed: true, confirmedBy: "Klijent" });
+    expect(await unconfirmProduct(v.productId, actor)).toBe(1);
+    expect(await unconfirmProduct(v.productId, actor)).toBe(0);
+    const p = await product(v.productId);
+    expect(p).toMatchObject({ confirmed: false, confirmedBy: null });
+    expect(p.confirmedAt).toBeNull();
   });
 
   it("confirms one or many, and filters by status, search and category", async () => {

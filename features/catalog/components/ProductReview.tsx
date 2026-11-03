@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useId, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Caption } from "@/components/atoms/Caption";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
-import { confirmReview, saveReviewField, saveVariantField } from "../actions";
+import { confirmReview, saveReviewField, saveVariantField, unconfirmReview } from "../actions";
 import { COLOUR_FAMILIES } from "../classify";
 import type { ReviewField, ReviewRow } from "../review";
 
@@ -18,9 +18,9 @@ const FIELD =
   "w-full rounded-[2px] border border-[var(--border-strong)] bg-[var(--bg-well)] px-2.5 py-2 font-ui text-sm text-[var(--text-display)] outline-none focus:border-[var(--accent)]";
 const LABEL = "mb-1 block font-ui text-xs text-[var(--text-secondary)]";
 
-type Result = { ok: true; data: { changed: boolean; confirmed: boolean } } | { ok: false; error: string };
+type Result = { ok: true; data: { changed: boolean } } | { ok: false; error: string };
 
-/** Text field that saves when you leave it, and only if the text changed. */
+/** Text field that saves when you leave it, and only if the text changed since it last tried. */
 function TextEdit({
   label,
   value,
@@ -34,12 +34,15 @@ function TextEdit({
 }) {
   const id = useId();
   const [text, setText] = useState(value);
+  const [sent, setSent] = useState(value);
   const props = {
     id,
     value: text,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setText(e.target.value),
     onBlur: () => {
-      if (text !== value) save(text);
+      if (text === sent) return;
+      setSent(text);
+      save(text);
     },
     className: FIELD,
   };
@@ -101,30 +104,42 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
   const lines = options.manufacturers.find((m) => String(m.id) === manufacturerId)?.lines ?? [];
   const [message, setMessage] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
-  const run = (fn: () => Promise<Result>) =>
-    start(async () => {
-      const res = await fn();
-      if (!res.ok) {
-        setMessage({ tone: "error", text: res.error || t("error") });
-        return;
-      }
-      if (res.data.changed) {
-        setConfirmed(true);
-        setMessage({ tone: "ok", text: t("saved") });
-      }
-    });
+  // Clicking Potvrdi leaves the field being typed in, so its save is still running when confirm starts.
+  const saving = useRef<Promise<unknown>>(Promise.resolve());
+  const failed = useRef(new Set<string>());
+
+  const run = (key: string, fn: () => Promise<Result>) => {
+    const save = fn()
+      .catch((): Result => ({ ok: false, error: "" }))
+      .then((res) => {
+        if (!res.ok) {
+          failed.current.add(key);
+          setMessage({ tone: "error", text: res.error || t("error") });
+          return;
+        }
+        failed.current.delete(key);
+        setMessage(res.data.changed ? { tone: "ok", text: t("saved") } : null);
+      });
+    saving.current = Promise.all([saving.current, save]);
+  };
   const save = (field: ReviewField) => (value: string) =>
-    run(() => saveReviewField({ id: row.id, field, value }));
+    run(field, () => saveReviewField({ id: row.id, field, value }));
   const f = (name: ReviewField) => t(`fields.${name}`);
 
-  function confirm() {
+  function setStatus(next: boolean) {
     start(async () => {
-      const res = await confirmReview({ ids: [row.id] });
+      await saving.current;
+      // A value that was refused is still on screen, so the product isn't what it appears to be.
+      if (next && failed.current.size > 0) {
+        setMessage((shown) => (shown?.tone === "error" ? shown : { tone: "error", text: t("error") }));
+        return;
+      }
+      const res = await (next ? confirmReview({ ids: [row.id] }) : unconfirmReview({ id: row.id }));
       if (!res.ok) {
         setMessage({ tone: "error", text: res.error || t("error") });
         return;
       }
-      setConfirmed(true);
+      setConfirmed(next);
       setMessage(null);
       router.refresh();
     });
@@ -144,10 +159,19 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
           >
             {confirmed ? t("confirmed") : t("open")}
           </span>
-          {!confirmed && (
+          {confirmed ? (
             <button
               type="button"
-              onClick={confirm}
+              onClick={() => setStatus(false)}
+              disabled={pending}
+              className="rounded-[2px] border border-[var(--border-strong)] px-3 py-1.5 text-[var(--text-secondary)] disabled:opacity-45"
+            >
+              {t("unconfirm")}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setStatus(true)}
               disabled={pending}
               className="rounded-[2px] bg-[var(--accent)] px-3 py-1.5 font-semibold text-[var(--text-on-accent)] disabled:opacity-45"
             >
@@ -242,12 +266,16 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
             <TextEdit
               label={t("fields.size")}
               value={v.size ?? ""}
-              save={(value) => run(() => saveVariantField({ id: v.id, field: "size", value }))}
+              save={(value) =>
+                run(`size-${v.id}`, () => saveVariantField({ id: v.id, field: "size", value }))
+              }
             />
             <TextEdit
               label={t("fields.price")}
               value={v.price}
-              save={(value) => run(() => saveVariantField({ id: v.id, field: "price", value }))}
+              save={(value) =>
+                run(`price-${v.id}`, () => saveVariantField({ id: v.id, field: "price", value }))
+              }
             />
             <div>
               <span className={LABEL}>{t("fields.stock")}</span>

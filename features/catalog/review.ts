@@ -94,17 +94,14 @@ async function parseField(field: ReviewField, value: string): Promise<Prisma.Pro
   }
 }
 
-/**
- * Saves one field. A real change also confirms the product, because the person looked at it and corrected it.
- * Saving the same value changes nothing, so clicking through a field doesn't confirm by accident.
- */
+/** Saves one field. It doesn't confirm the product: fixing one field says nothing about the others. */
 export async function updateReviewField(id: number, field: ReviewField, value: string, actor: AuditActor) {
   const data = await parseField(field, value);
   return db.$transaction(async (tx) => {
     const before = await tx.product.findUnique({ where: { id } });
     if (!before) throw new UserError("Artikal ne postoji.");
     if (field === "manufacturerId" && before.manufacturerId === data.manufacturerId) {
-      return { changed: false, confirmed: before.confirmed };
+      return { changed: false };
     }
     if (field === "lineId" && data.lineId) {
       const line = await tx.manufacturerLine.findUnique({ where: { id: data.lineId as number } });
@@ -112,11 +109,8 @@ export async function updateReviewField(id: number, field: ReviewField, value: s
         throw new UserError("Ta linija ne pripada ovom proizvođaču.");
     }
     const changes = diff(before as unknown as Record<string, unknown>, data as Record<string, unknown>);
-    if (Object.keys(changes).length === 0) return { changed: false, confirmed: before.confirmed };
-    await tx.product.update({
-      where: { id },
-      data: { ...data, confirmed: true, confirmedAt: new Date(), confirmedBy: actor.name },
-    });
+    if (Object.keys(changes).length === 0) return { changed: false };
+    await tx.product.update({ where: { id }, data });
     await audit(tx, actor, {
       action: "update",
       table: "product",
@@ -124,7 +118,7 @@ export async function updateReviewField(id: number, field: ReviewField, value: s
       summary: `Potvrda: izmijenjeno polje ${field} na artiklu ${before.name}`,
       changes: changes as Prisma.InputJsonValue,
     });
-    return { changed: true, confirmed: true };
+    return { changed: true };
   });
 }
 
@@ -133,7 +127,7 @@ const variantFields = z.discriminatedUnion("field", [
   z.object({ field: z.literal("price"), value: z.string() }),
 ]);
 
-/** The same rule for a variant's size and price: a real change confirms its product. */
+/** The same for a variant's size and price. */
 export async function updateVariantField(
   id: number,
   input: z.infer<typeof variantFields>,
@@ -149,15 +143,11 @@ export async function updateVariantField(
     data = { price: text };
   }
   return db.$transaction(async (tx) => {
-    const before = await tx.productVariant.findUnique({ where: { id }, include: { product: true } });
+    const before = await tx.productVariant.findUnique({ where: { id } });
     if (!before) throw new UserError("Artikal ne postoji.");
     const same = field === "price" ? before.price.equals(data.price as string) : before.size === data.size;
-    if (same) return { changed: false, confirmed: before.product.confirmed };
+    if (same) return { changed: false };
     await tx.productVariant.update({ where: { id }, data });
-    await tx.product.update({
-      where: { id: before.productId },
-      data: { confirmed: true, confirmedAt: new Date(), confirmedBy: actor.name },
-    });
     await audit(tx, actor, {
       action: "update",
       table: "product_variant",
@@ -170,7 +160,7 @@ export async function updateVariantField(
         ],
       },
     });
-    return { changed: true, confirmed: true };
+    return { changed: true };
   });
 }
 
@@ -188,6 +178,25 @@ export async function confirmProducts(ids: number[], actor: AuditActor) {
         recordId: ids.length === 1 ? ids[0] : null,
         summary: `Potvrda: potvrđeno artikala: ${count}`,
         changes: { ids },
+      });
+    }
+    return count;
+  });
+}
+
+/** Puts a product confirmed by mistake back on the list. */
+export async function unconfirmProduct(id: number, actor: AuditActor) {
+  return db.$transaction(async (tx) => {
+    const { count } = await tx.product.updateMany({
+      where: { id, confirmed: true },
+      data: { confirmed: false, confirmedAt: null, confirmedBy: null },
+    });
+    if (count > 0) {
+      await audit(tx, actor, {
+        action: "update",
+        table: "product",
+        recordId: id,
+        summary: "Potvrda: artikal vraćen na potvrdu",
       });
     }
     return count;

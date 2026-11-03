@@ -143,7 +143,7 @@ A POS connects the same way, with its own `system` name, if it isn't already cov
 
 ## Removing the confirmation page
 
-`/admin/potvrda` is temporary. It lets the client check imported data, and any real edit confirms a product. Once the
+`/admin/potvrda` is temporary. It lets the client check imported data: edits save on their own, and only the Potvrdi button confirms a product. Once the
 dashboard shows every product confirmed, this is done by hand, because nothing is automated:
 
 1. Delete `app/[locale]/admin/(panel)/potvrda/`, `features/catalog/review.ts`, `features/catalog/actions.ts`,

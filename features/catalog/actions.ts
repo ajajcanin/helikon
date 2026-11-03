@@ -16,7 +16,13 @@ import {
 } from "./manufacturers";
 import { addPhoto, deletePhoto, movePhoto, updatePhotoAlt } from "./photos";
 import { adjustStock, setProductStatus } from "./products";
-import { confirmProducts, REVIEW_FIELDS, updateReviewField, updateVariantField } from "./review";
+import {
+  confirmProducts,
+  REVIEW_FIELDS,
+  unconfirmProduct,
+  updateReviewField,
+  updateVariantField,
+} from "./review";
 
 /** Can move products between categories or hide them, which changes the menu. */
 const catalogAction: typeof adminAction = (schema, handler, opts) =>
@@ -38,9 +44,17 @@ export const saveVariantField = productAction(
   }),
 );
 
-export const confirmReview = catalogAction(
+// Being confirmed shows only in the admin, so the shop stays cached.
+export const confirmReview = adminAction(
   z.object({ ids: z.array(z.number().int().positive()).min(1).max(200) }),
   async ({ ids }, user) => ({ data: await confirmProducts(ids, actorOf(user)) }),
+  SHOP_UNCHANGED,
+);
+
+export const unconfirmReview = adminAction(
+  z.object({ id: z.number().int().positive() }),
+  async ({ id }, user) => ({ data: await unconfirmProduct(id, actorOf(user)) }),
+  SHOP_UNCHANGED,
 );
 
 const id = z.number().int().positive();
