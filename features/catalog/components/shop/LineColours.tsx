@@ -9,6 +9,16 @@ type Colour = Awaited<ReturnType<typeof listLineColours>>[number];
 /** Above this, a line is shown by colour family, with only the current family open. */
 const FLAT_LIMIT = 24;
 
+function FamilyDot({ family }: { family: string | null }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-block h-3 w-3 flex-none rounded-full border border-[var(--border-strong)]"
+      style={{ background: swatchColour(family) ?? undefined }}
+    />
+  );
+}
+
 async function ColourLinks({ colours, currentId }: { colours: Colour[]; currentId: number }) {
   const t = await getTranslations("shop");
   return (
@@ -21,17 +31,12 @@ async function ColourLinks({ colours, currentId }: { colours: Colour[]; currentI
             <Link
               href={`/proizvod/${colour.slug}`}
               aria-current={current ? "page" : undefined}
-              className={`inline-flex items-center gap-2 rounded-[2px] border px-2.5 py-1.5 font-ui text-xs transition-colors ${
+              className={`inline-flex items-center rounded-[2px] border px-2.5 py-1.5 font-ui text-xs transition-colors ${
                 current
                   ? "border-[var(--accent)] text-[var(--accent-bright)]"
                   : "border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--border-brass)]"
               } ${inStock ? "" : "opacity-50"}`}
             >
-              <span
-                aria-hidden="true"
-                className="h-3 w-3 flex-none rounded-full border border-[var(--border-strong)]"
-                style={{ background: swatchColour(colour.colourFamily) ?? undefined }}
-              />
               {displayName(colour)}
               {!inStock && <span className="sr-only">({t("outOfStock")})</span>}
             </Link>
@@ -82,7 +87,8 @@ export async function LineColours({
                 className="border-b border-[var(--border-subtle)] py-2.5"
               >
                 <summary className="cursor-pointer font-ui text-sm text-[var(--text-secondary)]">
-                  {label} <span className="text-xs text-[var(--text-muted)]">({group.length})</span>
+                  {id && <FamilyDot family={id} />} {label}{" "}
+                  <span className="text-xs text-[var(--text-muted)]">({group.length})</span>
                 </summary>
                 <div className="mt-2.5">
                   <ColourLinks colours={group} currentId={currentId} />
