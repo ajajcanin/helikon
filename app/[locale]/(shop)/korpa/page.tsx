@@ -2,8 +2,8 @@ import { getTranslations } from "next-intl/server";
 import { CartView } from "@/features/orders/components/CartView";
 import { cachedCategoryTree } from "@/server/public/cached";
 
-/** Always read fresh. */
-export const dynamic = "force-dynamic";
+/** The same for everyone: the cart itself lives in the browser, and its prices are checked by `readCart`. */
+export const revalidate = 3600;
 
 export default async function CartPage() {
   const [t, tree] = await Promise.all([getTranslations("shop"), cachedCategoryTree()]);

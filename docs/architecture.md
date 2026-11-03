@@ -30,11 +30,14 @@ Haen is a catalogue with inquiries and no checkout. Helikon sells online, so com
 
 Pages that show the same thing to everyone are cached with ISR, refreshed by tag, with a one-hour timer as a backstop:
 home, content pages, contact, the journal and its tags, articles, product pages, and plain catalogue and category lists.
-Filtered catalogue views, cart, checkout, thank you and admin stay server-rendered. The not-found page for unknown
+The cart page is cached too, because the cart itself lives in the browser. Filtered catalogue views, checkout, thank you
+and admin stay server-rendered. The not-found page for unknown
 addresses and `/odrzavanje` are SSG, because neither reads the database.
 
 - **Reading data:** cached pages read through `server/public/cached.ts`, whose results are stored as JSON, so they must
   be plain data. Prices are numbers, and dates are revived there.
+- **Deployments:** stored data outlives a deployment, so `cached.ts` puts the commit in each key. New code never reads
+  data in an old shape.
 - **Tags:** `catalog`, `product:<slug>`, `content`, `journal`, `company` and `nav`, in `server/shop-cache.ts`. The menu and
   footer are on every page, so clearing `nav` or `company` refreshes all of them.
 - **Refreshing:** `adminAction` clears tags after each write. An action states what it changes through `refresh`, and

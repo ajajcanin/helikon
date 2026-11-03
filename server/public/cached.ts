@@ -38,10 +38,15 @@ function cached<A extends unknown[], R>(
   tags: (...args: NoInfer<A>) => string[],
 ) {
   return (...args: A) =>
-    unstable_cache(() => read(...args), [key, JSON.stringify(args)], {
-      tags: tags(...args),
-      revalidate: HOUR,
-    })();
+    // Stored data outlives a deployment, so the commit is part of the key: new code never reads the old code's shapes.
+    unstable_cache(
+      () => read(...args),
+      [key, JSON.stringify(args), process.env.VERCEL_GIT_COMMIT_SHA ?? ""],
+      {
+        tags: tags(...args),
+        revalidate: HOUR,
+      },
+    )();
 }
 
 const reviveDate = <T extends { publishedAt: Date | null }>(row: T): T => ({
