@@ -1,6 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
-import { Cinzel, EB_Garamond, Inter } from "next/font/google";
+import { EB_Garamond, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
@@ -8,9 +9,10 @@ import { routing } from "@/i18n/routing";
 import { env } from "@/server/env";
 import "@/styles/globals.css";
 
-const cinzel = Cinzel({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Our copy of Cinzel: its own Đ is a D with a bar on top, so Đ and đ use the font's Ð, which has the bar through the stem.
+const cinzel = localFont({
+  src: "../fonts/Cinzel-Variable.woff2",
+  weight: "400 900",
   variable: "--font-cinzel",
   display: "swap",
 });
