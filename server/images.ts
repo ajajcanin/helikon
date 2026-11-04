@@ -1,19 +1,17 @@
 import "server-only";
 import sharp from "sharp";
-import { IMAGE_WIDTHS } from "@/lib/media";
+import { IMAGE_WIDTHS, storedWidths } from "@/lib/media";
 import { putObject } from "@/server/storage";
 
 export { IMAGE_WIDTHS };
 
 export type ImageSize = { width: number; height: number; data: Buffer };
 
-/** WebP copies of a photo, never enlarged. Sizes the original doesn't reach are left out. */
+/** WebP copies of a photo, never enlarged. The largest keeps the original's width, up to the biggest standard size. */
 export async function resizeImage(original: Buffer): Promise<ImageSize[]> {
   const meta = await sharp(original).rotate().toBuffer({ resolveWithObject: true });
-  const widths = IMAGE_WIDTHS.filter((w) => w <= meta.info.width);
-  const targets = widths.length ? widths : [meta.info.width];
   return Promise.all(
-    targets.map(async (width) => {
+    storedWidths(Math.min(meta.info.width, IMAGE_WIDTHS.at(-1)!)).map(async (width) => {
       const { data, info } = await sharp(meta.data)
         .resize({ width })
         .webp({ quality: 82 })

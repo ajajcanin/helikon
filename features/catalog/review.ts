@@ -207,10 +207,15 @@ export type ReviewFilters = {
   q?: string;
   status?: "open" | "done" | "all";
   categoryId?: number;
+  photo?: "missing" | "present";
   page?: number;
 };
 
 const reviewInclude = {
+  photos: {
+    orderBy: [{ sort: "asc" }, { id: "asc" }],
+    select: { id: true, storageKey: true, width: true, height: true },
+  },
   variants: {
     orderBy: { sort: "asc" },
     select: { id: true, sku: true, size: true, price: true, stockQty: true },
@@ -235,6 +240,7 @@ function toReviewRow(r: Prisma.ProductGetPayload<{ include: typeof reviewInclude
     reviewNote: r.reviewNote,
     confirmed: r.confirmed,
     confirmedBy: r.confirmedBy,
+    photos: r.photos,
     variants: r.variants.map((v) => ({
       id: v.id,
       sku: v.sku,
@@ -252,11 +258,12 @@ export async function getReviewRow(id: number) {
 }
 
 /** One page of products with everything staff check, including purchase-free variant data. */
-export async function listForReview({ q, status = "open", categoryId, page = 1 }: ReviewFilters) {
+export async function listForReview({ q, status = "open", categoryId, photo, page = 1 }: ReviewFilters) {
   const search = q?.trim();
   const where: Prisma.ProductWhereInput = {
     ...(status === "all" ? {} : { confirmed: status === "done" }),
     ...(categoryId ? { OR: [{ categoryId }, { category: { parentId: categoryId } }] } : {}),
+    ...(photo ? { photos: photo === "missing" ? { none: {} } : { some: {} } } : {}),
     ...(search
       ? {
           AND: [

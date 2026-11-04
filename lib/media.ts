@@ -1,10 +1,9 @@
 /** Widths generated once at upload, so Vercel's image optimisation isn't needed. */
 export const IMAGE_WIDTHS = [320, 640, 1024, 1600] as const;
 
-/** Sizes stored for an image whose largest size is `width`. A small image has just its own size. */
+/** Sizes stored for an image whose largest size is `width`: the standard ones below it, and its own. */
 export function storedWidths(width: number): number[] {
-  const widths = IMAGE_WIDTHS.filter((w) => w <= width);
-  return widths.length ? widths : [width];
+  return [...IMAGE_WIDTHS.filter((w) => w < width), width];
 }
 
 /** Shown when storage isn't set up, or an image's file is missing from it. */

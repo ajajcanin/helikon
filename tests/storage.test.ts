@@ -14,7 +14,7 @@ describe("resizeImage", () => {
     const big = await resizeImage(await photo(2000));
     expect(big.map((s) => s.width)).toEqual([...IMAGE_WIDTHS]);
     const small = await resizeImage(await photo(500));
-    expect(small.map((s) => s.width)).toEqual([320]);
+    expect(small.map((s) => s.width)).toEqual([320, 500]);
     const tiny = await resizeImage(await photo(100));
     expect(tiny.map((s) => s.width)).toEqual([100]);
   });
@@ -33,7 +33,7 @@ describe.skipIf(!process.env.S3_ENDPOINT)("object storage", () => {
 
     const prefix = `test/${Date.now()}`;
     const stored = await storeImageSizes(prefix, await photo(700));
-    expect(stored.widths).toEqual([320, 640]);
+    expect(stored.widths).toEqual([320, 640, 700]);
     const meta = await sharp(await getObject(`${prefix}/640.webp`)).metadata();
     expect(meta.format).toBe("webp");
 
@@ -53,11 +53,11 @@ describe.skipIf(!process.env.S3_ENDPOINT)("uploads", () => {
       return asked.key;
     };
     const key = await send(await photo(700), "image/png");
-    const done = await finishUpload(key, "products");
-    expect(done).toMatchObject({ width: 640 });
-    expect(done.storageKey).toMatch(/^products\/[0-9a-f-]{36}$/);
+    const done = await finishUpload(key, "products", "akrilna-boja");
+    expect(done).toMatchObject({ width: 700 });
+    expect(done.storageKey).toMatch(/^products\/akrilna-boja-[0-9a-f]{8}$/);
     await expect(getObject(key)).rejects.toThrow();
-    await deleteImage(done.storageKey, [320, 640]);
+    await deleteImage(done.storageKey, [320, 640, 700]);
 
     const fake = await send("<script>alert(1)</script>", "image/png");
     await expect(finishUpload(fake, "products")).rejects.toThrow(/slika/);

@@ -4,8 +4,21 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Caption } from "@/components/atoms/Caption";
+import { MediaImage } from "@/components/atoms/MediaImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
-import { confirmReview, saveReviewField, saveVariantField, unconfirmReview } from "../actions";
+import { Link } from "@/i18n/navigation";
+import { mediaUrl } from "@/lib/media";
+import { uploadImage } from "@/lib/upload-image";
+import {
+  confirmReview,
+  finishProductPhoto,
+  removePhoto,
+  replaceProductPhoto,
+  requestProductPhoto,
+  saveReviewField,
+  saveVariantField,
+  unconfirmReview,
+} from "../actions";
 import { COLOUR_FAMILIES } from "../classify";
 import type { ReviewField, ReviewRow } from "../review";
 
@@ -91,6 +104,99 @@ function SelectEdit({
         ))}
       </select>
     </label>
+  );
+}
+
+/** Shows the product's first photo, the one customers see first, and replaces, removes or adds it. */
+function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewRow["photos"] }) {
+  const t = useTranslations("review");
+  const c = useTranslations("common");
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [pending, start] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const photo = photos[0];
+
+  function upload(file: File | undefined) {
+    if (!file) return;
+    setError(null);
+    start(async () => {
+      const res = await uploadImage(file, {
+        request: requestProductPhoto,
+        finish: (key) =>
+          photo
+            ? replaceProductPhoto({ id: photo.id, productId, key })
+            : finishProductPhoto({ productId, key }),
+      });
+      if (input.current) input.current.value = "";
+      if ("error" in res) setError(res.error);
+      else router.refresh();
+    });
+  }
+
+  function remove() {
+    if (!photo || !window.confirm(c("confirmDelete"))) return;
+    setError(null);
+    start(async () => {
+      const res = await removePhoto({ id: photo.id });
+      if (res.ok) router.refresh();
+      else setError(res.error);
+    });
+  }
+
+  const action =
+    "font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline disabled:opacity-45";
+  return (
+    <div className="flex w-full flex-col gap-2 md:w-44 md:shrink-0">
+      <div className="flex h-44 items-center justify-center border border-[var(--border-subtle)] bg-white">
+        {photo ? (
+          <a
+            href={mediaUrl(photo.storageKey, photo.width, photo.width)}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={t("photoOpen")}
+            title={t("photoOpen")}
+            className="block h-full w-full"
+          >
+            <MediaImage
+              key={photo.storageKey}
+              storageKey={photo.storageKey}
+              width={photo.width}
+              height={photo.height}
+              alt=""
+              sizes="176px"
+              className="h-full w-full object-contain"
+            />
+          </a>
+        ) : (
+          <span className="font-ui text-xs text-neutral-600">{t("photoNone")}</span>
+        )}
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+        aria-label={photo ? t("photoReplace") : t("photoAdd")}
+        onChange={(e) => upload(e.target.files?.[0])}
+      />
+      <div className="flex flex-wrap gap-x-3 gap-y-1">
+        <button type="button" disabled={pending} onClick={() => input.current?.click()} className={action}>
+          {pending ? t("photoUploading") : photo ? t("photoReplace") : t("photoAdd")}
+        </button>
+        {photo && (
+          <button type="button" disabled={pending} onClick={remove} className={action}>
+            {t("photoRemove")}
+          </button>
+        )}
+        {photos.length > 1 && (
+          <Link href={`/admin/artikli/${productId}`} className={action}>
+            {t("photoCount", { count: photos.length })}
+          </Link>
+        )}
+      </div>
+      <div aria-live="polite">{error && <Caption tone="error">{error}</Caption>}</div>
+    </div>
   );
 }
 
@@ -187,63 +293,66 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
         </p>
       )}
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <TextEdit label={f("name")} value={row.name} save={save("name")} />
-        <SelectEdit
-          label={f("categoryId")}
-          value={String(row.categoryId ?? "")}
-          options={options.categories
-            .filter((c) => c.selectable)
-            .map((c) => [String(c.id), c.label] as const)}
-          save={save("categoryId")}
-          empty={t("none")}
-        />
-        <SelectEdit
-          label={f("manufacturerId")}
-          value={manufacturerId}
-          options={options.manufacturers.map((m) => [String(m.id), m.name] as const)}
-          save={(value) => {
-            setManufacturerId(value);
-            setLineId("");
-            save("manufacturerId")(value);
-          }}
-          empty={t("none")}
-        />
-        <SelectEdit
-          label={f("lineId")}
-          value={lineId}
-          options={lines.map((l) => [String(l.id), l.name] as const)}
-          save={(value) => {
-            setLineId(value);
-            save("lineId")(value);
-          }}
-          empty={t("none")}
-        />
-        <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
-        <TextEdit
-          label={f("colourNameMaker")}
-          value={row.colourNameMaker ?? ""}
-          save={save("colourNameMaker")}
-        />
-        <TextEdit label={f("colourCode")} value={row.colourCode ?? ""} save={save("colourCode")} />
-        <SelectEdit
-          label={f("colourFamily")}
-          value={row.colourFamily ?? ""}
-          options={COLOUR_FAMILIES}
-          save={save("colourFamily")}
-          empty={t("none")}
-        />
-        <SelectEdit
-          label={f("medium")}
-          value={row.medium ?? ""}
-          options={[
-            ["akril", t("mediumAkril")],
-            ["ulje", t("mediumUlje")],
-          ]}
-          save={save("medium")}
-          empty={t("none")}
-        />
-        <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
+      <div className="flex flex-col gap-4 md:flex-row md:items-start">
+        <ReviewPhoto productId={row.id} photos={row.photos} />
+        <div className="grid flex-1 gap-3 md:grid-cols-3">
+          <TextEdit label={f("name")} value={row.name} save={save("name")} />
+          <SelectEdit
+            label={f("categoryId")}
+            value={String(row.categoryId ?? "")}
+            options={options.categories
+              .filter((c) => c.selectable)
+              .map((c) => [String(c.id), c.label] as const)}
+            save={save("categoryId")}
+            empty={t("none")}
+          />
+          <SelectEdit
+            label={f("manufacturerId")}
+            value={manufacturerId}
+            options={options.manufacturers.map((m) => [String(m.id), m.name] as const)}
+            save={(value) => {
+              setManufacturerId(value);
+              setLineId("");
+              save("manufacturerId")(value);
+            }}
+            empty={t("none")}
+          />
+          <SelectEdit
+            label={f("lineId")}
+            value={lineId}
+            options={lines.map((l) => [String(l.id), l.name] as const)}
+            save={(value) => {
+              setLineId(value);
+              save("lineId")(value);
+            }}
+            empty={t("none")}
+          />
+          <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
+          <TextEdit
+            label={f("colourNameMaker")}
+            value={row.colourNameMaker ?? ""}
+            save={save("colourNameMaker")}
+          />
+          <TextEdit label={f("colourCode")} value={row.colourCode ?? ""} save={save("colourCode")} />
+          <SelectEdit
+            label={f("colourFamily")}
+            value={row.colourFamily ?? ""}
+            options={COLOUR_FAMILIES}
+            save={save("colourFamily")}
+            empty={t("none")}
+          />
+          <SelectEdit
+            label={f("medium")}
+            value={row.medium ?? ""}
+            options={[
+              ["akril", t("mediumAkril")],
+              ["ulje", t("mediumUlje")],
+            ]}
+            save={save("medium")}
+            empty={t("none")}
+          />
+          <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
+        </div>
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">

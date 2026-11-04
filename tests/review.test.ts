@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { addPhoto, listPhotos, replacePhoto } from "@/features/catalog/photos";
 import {
   confirmProducts,
   listForReview,
@@ -101,6 +102,37 @@ describe("confirmation page", () => {
     const data = await listForReview({});
     expect(data).toMatchObject({ filtered: 0, total: 2, done: 2 });
     expect((await listForReview({ status: "done" })).filtered).toBe(2);
+  });
+
+  it("shows each product's photos and filters by whether it has any", async () => {
+    const a = await seedVariant();
+    const b = await seedVariant();
+    const image = { storageKey: "products/a-12345678", width: 536, height: 700 };
+    const added = await addPhoto(a.productId, image, actor);
+
+    const ids = async (photo: "missing" | "present") =>
+      (await listForReview({ photo })).rows.map((r) => r.id);
+    expect(await ids("present")).toEqual([a.productId]);
+    expect(await ids("missing")).toEqual([b.productId]);
+
+    const [row] = (await listForReview({ photo: "present" })).rows;
+    expect(row!.photos).toMatchObject([{ id: added.id, ...image }]);
+  });
+
+  it("replacing a photo keeps its place and drops the old description", async () => {
+    const a = await seedVariant();
+    const b = await seedVariant();
+    const first = await addPhoto(a.productId, { storageKey: "products/a-1", width: 320, height: 320 }, actor);
+    await addPhoto(a.productId, { storageKey: "products/a-2", width: 320, height: 320 }, actor);
+    await db.productPhoto.update({ where: { id: first.id }, data: { alt: "Stari opis" } });
+
+    const image = { storageKey: "products/a-3", width: 536, height: 700 };
+    await expect(replacePhoto(first.id, b.productId, image, actor)).rejects.toThrow(/ne postoji/);
+    await replacePhoto(first.id, a.productId, image, actor);
+
+    const photos = await listPhotos(a.productId);
+    expect(photos.map((p) => p.storageKey)).toEqual(["products/a-3", "products/a-2"]);
+    expect(photos[0]!.alt).toBeNull();
   });
 
   it("never exposes purchase data", async () => {

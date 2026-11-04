@@ -14,7 +14,7 @@ import {
   renameLine,
   renameManufacturer,
 } from "./manufacturers";
-import { addPhoto, deletePhoto, movePhoto, updatePhotoAlt } from "./photos";
+import { addPhoto, deletePhoto, movePhoto, photoName, replacePhoto, updatePhotoAlt } from "./photos";
 import { adjustStock, setProductStatus } from "./products";
 import {
   confirmProducts,
@@ -163,8 +163,17 @@ export const requestProductPhoto = catalogAction(
 export const finishProductPhoto = productAction(
   z.object({ productId: id, key: z.string().max(80) }),
   async ({ productId, key }, user) => {
-    const image = await finishUpload(key, "products");
+    const image = await finishUpload(key, "products", await photoName(productId));
     await addPhoto(productId, image, actorOf(user));
+    return { data: undefined };
+  },
+);
+
+export const replaceProductPhoto = productAction(
+  z.object({ id, productId: id, key: z.string().max(80) }),
+  async ({ id, productId, key }, user) => {
+    const image = await finishUpload(key, "products", await photoName(productId));
+    await replacePhoto(id, productId, image, actorOf(user));
     return { data: undefined };
   },
 );

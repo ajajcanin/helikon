@@ -24,15 +24,18 @@ export async function requestUpload(input: { contentType: string; size: number }
   return { key, url: await presignUpload(key, input.contentType) };
 }
 
-/** Checks the uploaded file really is an image, stores its sizes under `folder`, and removes the original. */
-export async function finishUpload(key: string, folder: "products" | "articles") {
+/**
+ * Checks the uploaded file really is an image, stores its sizes under `folder`, and removes the original.
+ * `name` makes the folder recognisable in the bucket. The random part stays because a new upload must get a new key.
+ */
+export async function finishUpload(key: string, folder: "products" | "articles", name?: string) {
   requireStorage();
   if (!/^uploads\/[0-9a-f-]{36}$/.test(key)) throw new UserError("Neispravan fajl.");
   const original = await getObject(key);
   try {
     const meta = await sharp(original).metadata();
     if (!meta.format || !["jpeg", "png", "webp"].includes(meta.format)) throw new Error("format");
-    const storageKey = `${folder}/${randomUUID()}`;
+    const storageKey = name ? `${folder}/${name}-${randomUUID().slice(0, 8)}` : `${folder}/${randomUUID()}`;
     const stored = await storeImageSizes(storageKey, original);
     return { storageKey, width: stored.width, height: stored.height };
   } catch {

@@ -8,15 +8,16 @@ const FIELD =
 type Props = {
   q: string;
   status: string;
+  photo: string;
   categoryId: string;
   subcategoryId: string;
   categoryTree: CategoryNode[];
 };
 
-export function ReviewFilters({ q, status, categoryId, subcategoryId, categoryTree }: Props) {
+export function ReviewFilters({ q, status, photo, categoryId, subcategoryId, categoryTree }: Props) {
   const t = useTranslations("review");
   return (
-    <FilterForm className="mb-6 grid items-end gap-3 md:grid-cols-[2fr_1fr_1.5fr_1.5fr]">
+    <FilterForm className="mb-6 grid items-end gap-3 md:grid-cols-[2fr_1fr_1fr_1.5fr_1.5fr]">
       <label className="block font-ui text-xs text-[var(--text-secondary)]">
         {t("search")}
         <input name="q" defaultValue={q} placeholder={t("searchHint")} className={`${FIELD} mt-1`} />
@@ -27,6 +28,14 @@ export function ReviewFilters({ q, status, categoryId, subcategoryId, categoryTr
           <option value="open">{t("statusOpen")}</option>
           <option value="done">{t("statusDone")}</option>
           <option value="all">{t("statusAll")}</option>
+        </select>
+      </label>
+      <label className="block font-ui text-xs text-[var(--text-secondary)]">
+        {t("photo")}
+        <select name="slika" defaultValue={photo} className={`${FIELD} mt-1`}>
+          <option value="">{t("photoAll")}</option>
+          <option value="nema">{t("photoMissing")}</option>
+          <option value="ima">{t("photoPresent")}</option>
         </select>
       </label>
       <CategoryFilter tree={categoryTree} category={categoryId} subcategory={subcategoryId} />

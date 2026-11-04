@@ -15,6 +15,7 @@ export default async function ReviewPage({
   const t = await getTranslations("review");
   const q = single(params.q);
   const status = single(params.status);
+  const photo = single(params.slika);
   const categoryId = single(params.kategorija);
   const subcategoryId = single(params.podkategorija);
   const page = Math.max(1, Number(single(params.strana)) || 1);
@@ -23,6 +24,7 @@ export default async function ReviewPage({
       q,
       status: status === "done" || status === "all" ? status : "open",
       categoryId: Number(subcategoryId) || Number(categoryId) || undefined,
+      photo: photo === "nema" ? "missing" : photo === "ima" ? "present" : undefined,
       page,
     }),
     reviewOptions(),
@@ -32,6 +34,7 @@ export default async function ReviewPage({
     query: {
       ...(q && { q }),
       ...(status && { status }),
+      ...(photo && { slika: photo }),
       ...(categoryId && { kategorija: categoryId }),
       ...(subcategoryId && { podkategorija: subcategoryId }),
       strana: to,
@@ -48,6 +51,7 @@ export default async function ReviewPage({
       <ReviewFilters
         q={q}
         status={status || "open"}
+        photo={photo}
         categoryId={categoryId}
         subcategoryId={subcategoryId}
         categoryTree={options.categoryTree}

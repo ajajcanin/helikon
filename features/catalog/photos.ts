@@ -1,4 +1,5 @@
 import { storedWidths } from "@/lib/media";
+import { slugify } from "@/lib/slug";
 import { UserError } from "@/server/admin/action";
 import { type AuditActor, audit } from "@/server/audit";
 import { db } from "@/server/db";
@@ -14,6 +15,20 @@ export const listPhotos = (productId: number) =>
   });
 
 export type AdminPhoto = Awaited<ReturnType<typeof listPhotos>>[number];
+
+/**
+ * Names the product's photos in storage: its first šifra, then its slug, so a folder can be found by šifra.
+ * They keep the name if the product changes, since the database holds the path.
+ */
+export async function photoName(productId: number) {
+  const product = await db.product.findUnique({
+    where: { id: productId },
+    select: { slug: true, variants: { orderBy: { sort: "asc" }, take: 1, select: { sku: true } } },
+  });
+  if (!product) throw new UserError("Artikal ne postoji.");
+  const sku = product.variants[0]?.sku;
+  return sku ? `${slugify(sku)}-${product.slug}` : product.slug;
+}
 
 export async function addPhoto(
   productId: number,
@@ -32,6 +47,28 @@ export async function addPhoto(
     });
     return photo;
   });
+}
+
+/** Swaps a photo's image in place, so it keeps its position. The old description goes, since it described the old image. */
+export async function replacePhoto(
+  id: number,
+  productId: number,
+  image: { storageKey: string; width: number; height: number },
+  actor: AuditActor,
+) {
+  const old = await db.$transaction(async (tx) => {
+    const found = await tx.productPhoto.findFirst({ where: { id, productId } });
+    if (!found) throw new UserError("Slika ne postoji.");
+    await tx.productPhoto.update({ where: { id }, data: { ...image, alt: null } });
+    await audit(tx, actor, {
+      action: "update",
+      table: "product",
+      recordId: productId,
+      summary: "Zamijenjena slika artikla",
+    });
+    return found;
+  });
+  await deleteImage(old.storageKey, storedWidths(old.width));
 }
 
 export async function updatePhotoAlt(id: number, alt: string, actor: AuditActor) {
