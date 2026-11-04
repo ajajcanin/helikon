@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { Link } from "@/i18n/navigation";
 import { displayName, swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
@@ -19,16 +19,16 @@ export async function ProductCard({ product }: { product: CardProduct }) {
   return (
     <article className="group relative flex flex-col overflow-hidden border border-[var(--border-subtle)] bg-[var(--surface-card)] shadow-[var(--shadow-card)] transition duration-(--duration-base) ease-(--ease-out-soft) hover:-translate-y-1 hover:border-[var(--border-brass)]">
       {photo ? (
-        <MediaImage
+        <ProductImage
           storageKey={photo.storageKey}
           width={photo.width}
           height={photo.height}
           alt={photo.alt ?? displayName(product)}
           sizes="(max-width: 1024px) 50vw, 25vw"
-          className="aspect-[4/3] w-full object-cover"
+          className="aspect-square w-full"
         />
       ) : (
-        <PaintSwatch color={swatchColour(product.colourFamily)} className="aspect-[4/3]" />
+        <PaintSwatch color={swatchColour(product.colourFamily)} className="aspect-square" />
       )}
       <div className="flex flex-1 flex-col gap-1.5 px-4 pt-3 pb-4">
         <span className="font-ui text-[10.5px] tracking-[0.16em] text-[var(--accent-bright)] uppercase">

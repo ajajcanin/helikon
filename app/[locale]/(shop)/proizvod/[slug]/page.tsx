@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { LineColours } from "@/features/catalog/components/shop/LineColours";
 import { ProductCard, ProductGrid } from "@/features/catalog/components/shop/ProductCard";
 import { AddToCart } from "@/features/orders/components/AddToCart";
@@ -70,7 +70,7 @@ export default async function ProductPage({ params }: Props) {
           {product.photos.length > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               {product.photos.map((photo, index) => (
-                <MediaImage
+                <ProductImage
                   key={photo.storageKey}
                   storageKey={photo.storageKey}
                   width={photo.width}
@@ -78,7 +78,7 @@ export default async function ProductPage({ params }: Props) {
                   alt={photo.alt ?? name}
                   sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
                   priority={index === 0}
-                  className={`w-full border border-[var(--border-subtle)] object-cover ${index === 0 ? "col-span-2 aspect-square" : "aspect-square"}`}
+                  className={`aspect-square w-full border border-[var(--border-subtle)] ${index === 0 ? "col-span-2" : ""}`}
                 />
               ))}
             </div>

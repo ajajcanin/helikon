@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { Link } from "@/i18n/navigation";
 import { displayName, swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
@@ -32,13 +33,13 @@ function InlineProductCard({ product, labels }: { product: InlineProduct; labels
       className="my-2 flex items-center gap-4 border border-[var(--border-subtle)] bg-[var(--surface-card)] p-3 transition-colors hover:border-[var(--border-brass)]"
     >
       {photo ? (
-        <MediaImage
+        <ProductImage
           storageKey={photo.storageKey}
           width={photo.width}
           height={photo.height}
           alt=""
           sizes="72px"
-          className="h-[72px] w-[72px] flex-none object-cover"
+          className="h-[72px] w-[72px] flex-none"
         />
       ) : (
         <PaintSwatch color={swatchColour(product.colourFamily)} className="h-[72px] w-[72px] flex-none" />

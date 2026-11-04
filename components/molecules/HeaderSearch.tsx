@@ -2,8 +2,8 @@
 
 import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useEffect, useState } from "react";
-import { MediaImage } from "@/components/atoms/MediaImage";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
@@ -131,13 +131,13 @@ export function HeaderSearch() {
                 className={`flex items-center gap-3 px-3 py-2 ${active === index ? "bg-[var(--accent-subtle)]" : "hover:bg-[var(--accent-subtle)]"}`}
               >
                 {row.photo ? (
-                  <MediaImage
+                  <ProductImage
                     storageKey={row.photo.storageKey}
                     width={row.photo.width}
                     height={row.photo.height}
                     alt=""
                     sizes="48px"
-                    className="h-12 w-12 flex-none object-cover"
+                    className="h-12 w-12 flex-none"
                   />
                 ) : (
                   <PaintSwatch color={swatchColour(row.colourFamily)} className="h-12 w-12 flex-none" />

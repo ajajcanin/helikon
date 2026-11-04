@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Caption } from "@/components/atoms/Caption";
-import { MediaImage } from "@/components/atoms/MediaImage";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
 import { Link } from "@/i18n/navigation";
 import { mediaUrl } from "@/lib/media";
@@ -148,7 +148,7 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
     "font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline disabled:opacity-45";
   return (
     <div className="flex w-full flex-col gap-2 md:w-44 md:shrink-0">
-      <div className="flex h-44 items-center justify-center border border-[var(--border-subtle)] bg-white">
+      <div className="flex h-44 items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)]">
         {photo ? (
           <a
             href={mediaUrl(photo.storageKey, photo.width, photo.width)}
@@ -158,14 +158,14 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
             title={t("photoOpen")}
             className="block h-full w-full"
           >
-            <MediaImage
+            <ProductImage
               key={photo.storageKey}
               storageKey={photo.storageKey}
               width={photo.width}
               height={photo.height}
               alt=""
               sizes="176px"
-              className="h-full w-full object-contain"
+              className="h-full w-full"
             />
           </a>
         ) : (

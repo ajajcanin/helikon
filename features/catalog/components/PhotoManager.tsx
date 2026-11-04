@@ -6,7 +6,7 @@ import { Button } from "@/components/atoms/Button";
 import { Caption } from "@/components/atoms/Caption";
 import { FIELD_CLASS } from "@/components/atoms/Field";
 import { Icon } from "@/components/atoms/Icon";
-import { MediaImage } from "@/components/atoms/MediaImage";
+import { ProductImage } from "@/components/atoms/ProductImage";
 import { uploadImage } from "@/lib/upload-image";
 import { useAdminAction } from "@/lib/use-admin-action";
 import { editPhotoAlt, finishProductPhoto, removePhoto, reorderPhoto, requestProductPhoto } from "../actions";
@@ -19,13 +19,13 @@ function PhotoRow({ photo, isFirst, isLast }: { photo: AdminPhoto; isFirst: bool
   const [alt, setAlt] = useState(photo.alt ?? "");
   return (
     <li className="flex flex-wrap items-center gap-3 border-b border-[var(--border-subtle)] py-2">
-      <MediaImage
+      <ProductImage
         storageKey={photo.storageKey}
         width={photo.width}
         height={photo.height}
         alt=""
         sizes="64px"
-        className="h-16 w-16 object-cover"
+        className="h-16 w-16"
       />
       <input
         aria-label={t("alt")}
