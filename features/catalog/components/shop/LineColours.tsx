@@ -7,7 +7,7 @@ import { COLOUR_FAMILIES } from "../../classify";
 type Colour = Awaited<ReturnType<typeof listLineColours>>[number];
 
 /** Above this, a line is shown by colour family, with only the current family open. */
-const FLAT_LIMIT = 24;
+const FLAT_LIMIT = 15;
 
 function FamilyDot({ family }: { family: string | null }) {
   return (
