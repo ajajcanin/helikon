@@ -86,6 +86,12 @@ describe("shop catalogue", () => {
     expect(await ids(yellow.sku)).toEqual([yellow.productId]);
   });
 
+  it("finds a product by its colour number", async () => {
+    const v = await seedVariant();
+    await db.product.update({ where: { id: v.productId }, data: { colourCode: "1154" } });
+    expect((await listPublishedProducts({ q: "1154" })).map((p) => p.id)).toEqual([v.productId]);
+  });
+
   it("searches words in any order across names, category, line and manufacturer", async () => {
     const maker = await db.manufacturer.create({ data: { slug: "rich", name: "Rich" } });
     const line = await db.manufacturerLine.create({
