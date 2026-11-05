@@ -66,14 +66,22 @@ export function historyTitle(summary: string | null, action: string) {
 
 const asIds = (values: unknown[]) => values.filter((v): v is number => typeof v === "number");
 
-export async function listHistory({ table, page = 1 }: { table?: string; page?: number }) {
+export async function listHistory({
+  table,
+  page = 1,
+  take = PAGE_SIZE,
+}: {
+  table?: string;
+  page?: number;
+  take?: number;
+}) {
   const where = table ? { tableName: table } : {};
   const [rows, total] = await Promise.all([
     db.auditLog.findMany({
       where,
       orderBy: { id: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
+      skip: (page - 1) * take,
+      take,
       select: {
         id: true,
         at: true,
@@ -175,6 +183,8 @@ export async function listHistory({ table, page = 1 }: { table?: string; page?: 
         to: readable(c.field, c.to),
       })),
     })),
-    pages: Math.max(1, Math.ceil(total / PAGE_SIZE)),
+    pages: Math.max(1, Math.ceil(total / take)),
   };
 }
+
+export type HistoryRow = Awaited<ReturnType<typeof listHistory>>["rows"][number];

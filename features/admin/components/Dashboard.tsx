@@ -1,5 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { db } from "@/server/db";
+import { listHistory } from "../history";
+import { HistoryList } from "./HistoryList";
 
 export async function Dashboard() {
   const t = await getTranslations("admin");
@@ -10,7 +12,7 @@ export async function Dashboard() {
     db.productVariant.count(),
     db.order.count(),
     db.order.count({ where: { status: "NEW" } }),
-    db.auditLog.findMany({ orderBy: { id: "desc" }, take: 10 }),
+    listHistory({ take: 10 }),
   ]);
   const stats = [
     [t("products"), products],
@@ -34,19 +36,10 @@ export async function Dashboard() {
         {t("review")}: {t("reviewProgress", { done: confirmed, total: products })}
       </p>
       <h2 className="mt-10 font-display text-lg tracking-[0.08em]">{t("lastChanges")}</h2>
-      {changes.length === 0 ? (
+      {changes.rows.length === 0 ? (
         <p className="mt-3 font-ui text-sm text-[var(--text-muted)]">{t("noChanges")}</p>
       ) : (
-        <ul className="mt-3 divide-y divide-[var(--border-subtle)] font-ui text-sm">
-          {changes.map((c) => (
-            <li key={c.id} className="flex flex-wrap justify-between gap-2 py-2">
-              <span>{c.summary ?? c.action}</span>
-              <span className="text-[var(--text-muted)]">
-                {c.userName} · {format.dateTime(c.at, "long")}
-              </span>
-            </li>
-          ))}
-        </ul>
+        <HistoryList rows={changes.rows} className="mt-3 font-ui text-sm" />
       )}
     </>
   );
