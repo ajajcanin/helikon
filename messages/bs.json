@@ -114,6 +114,7 @@
   "common": {
     "save": "Sačuvaj",
     "cancel": "Odustani",
+    "noValue": "prazno",
     "add": "Dodaj",
     "delete": "Obriši",
     "saved": "Sačuvano.",
@@ -270,7 +271,24 @@
     "t_user": "Korisnici",
     "t_setting": "Postavke",
     "t_manufacturer": "Proizvođači",
-    "t_article": "Dnevnik"
+    "t_article": "Dnevnik",
+    "sku": "Šifra",
+    "f_name": "Naziv",
+    "f_categoryId": "Kategorija",
+    "f_manufacturerId": "Proizvođač",
+    "f_lineId": "Linija",
+    "f_colourName": "Boja",
+    "f_colourNameMaker": "Naziv boje proizvođača",
+    "f_colourCode": "Broj nijanse",
+    "f_colourFamily": "Porodica boje",
+    "f_medium": "Medij",
+    "f_finish": "Izgled",
+    "f_description": "Opis",
+    "f_specs": "Specifikacija",
+    "f_size": "Veličina",
+    "f_price": "Cijena (KM)",
+    "f_stockQty": "Zaliha",
+    "f_status": "Objava"
   },
   "manufacturers": {
     "title": "Proizvođači",

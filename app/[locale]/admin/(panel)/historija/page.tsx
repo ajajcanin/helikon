@@ -4,6 +4,7 @@ import { PageTitle } from "@/components/atoms/PageTitle";
 import { FilterForm } from "@/components/molecules/FilterForm";
 import { Pagination } from "@/components/molecules/Pagination";
 import { HISTORY_TABLES, listHistory } from "@/features/admin/history";
+import { Link } from "@/i18n/navigation";
 import { activeQuery, pageParam, param, type SearchParams } from "@/lib/search-params";
 
 export default async function HistoryPage({ searchParams }: { searchParams: SearchParams }) {
@@ -36,7 +37,32 @@ export default async function HistoryPage({ searchParams }: { searchParams: Sear
         <ul className="divide-y divide-[var(--border-subtle)]">
           {data.rows.map((r) => (
             <li key={r.id} className="flex flex-wrap justify-between gap-2 py-2">
-              <span>{r.summary ?? r.action}</span>
+              <div className="min-w-0">
+                <p>
+                  {r.title}
+                  {r.product && (
+                    <>
+                      {": "}
+                      <Link
+                        href={`/admin/artikli/${r.product.id}`}
+                        className="text-[var(--accent-bright)] underline underline-offset-2"
+                      >
+                        {r.product.name}
+                      </Link>
+                    </>
+                  )}
+                </p>
+                {r.product && r.product.skus.length > 0 && (
+                  <p className="mt-1 font-ui text-xs text-[var(--text-muted)]">
+                    {t("sku")}: {r.product.skus.join(", ")}
+                  </p>
+                )}
+                {r.changes.map((change) => (
+                  <p key={change.field} className="mt-1 font-ui text-xs text-[var(--text-secondary)]">
+                    {t(`f_${change.field}`)}: {change.from ?? c("noValue")} → {change.to ?? c("noValue")}
+                  </p>
+                ))}
+              </div>
               <span className="text-[var(--text-muted)]">
                 {r.userName} · {format.dateTime(r.at, "long")}
               </span>

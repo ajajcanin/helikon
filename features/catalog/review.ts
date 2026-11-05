@@ -1,6 +1,7 @@
 import { Decimal } from "decimal.js";
 import { z } from "zod";
 import type { Prisma } from "@/generated/prisma/client";
+import { specsToText } from "@/lib/specs";
 import { UserError } from "@/server/admin/action";
 import { type AuditActor, audit, diff } from "@/server/audit";
 import { db } from "@/server/db";
@@ -11,10 +12,6 @@ const PAGE_SIZE = 50;
 const FAMILY_IDS = COLOUR_FAMILIES.map(([id]) => id) as string[];
 
 /** "Baza: Voda" per line, the way staff edit it. */
-export function specsToText(specs: unknown): string {
-  if (!Array.isArray(specs)) return "";
-  return (specs as Spec[]).map((s) => `${s.label}: ${s.value}`).join("\n");
-}
 
 function textToSpecs(text: string): Spec[] {
   return text

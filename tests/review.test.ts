@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { listHistory } from "@/features/admin/history";
 import { addPhoto, listPhotos, replacePhoto } from "@/features/catalog/photos";
 import {
   confirmProducts,
@@ -130,6 +131,31 @@ describe("confirmation page", () => {
     expect(own.variantId).toBe(a.id);
 
     await expect(addPhoto(a.productId, image, actor, b.id)).rejects.toThrow("Veličina ne postoji.");
+  });
+
+  it("names the product and shows old and new values in the history", async () => {
+    const a = await seedVariant();
+    await updateReviewField(a.productId, "finish", "Mat", actor);
+    await addPhoto(a.productId, { storageKey: "products/a-1", width: 320, height: 320 }, actor);
+
+    const { rows } = await listHistory({ table: "product" });
+    const [photo, edit] = rows;
+    expect(photo).toMatchObject({ title: "Dodana slika artikla", changes: [] });
+    expect(photo!.product?.id).toBe(a.productId);
+    expect(edit).toMatchObject({
+      title: "Izmijenjen artikal",
+      changes: [{ field: "finish", from: null, to: "Mat" }],
+    });
+    expect(edit!.product?.id).toBe(a.productId);
+    expect(edit!.product?.skus).toEqual([a.sku]);
+
+    await updateReviewField(a.productId, "finish", "Saten", actor);
+    await updateReviewField(a.productId, "colourCode", "133", actor);
+    const merged = (await listHistory({ table: "product" })).rows[0]!;
+    expect(merged.changes).toEqual([
+      { field: "colourCode", from: null, to: "133" },
+      { field: "finish", from: "Mat", to: "Saten" },
+    ]);
   });
 
   it("replacing a photo keeps its place and drops the old description", async () => {

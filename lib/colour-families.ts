@@ -1,0 +1,15 @@
+export const COLOUR_FAMILIES = [
+  ["zute", "Žute"],
+  ["narandzaste", "Narandžaste"],
+  ["crvene", "Crvene"],
+  ["ljubicaste", "Ljubičaste"],
+  ["plave", "Plave"],
+  ["zelene", "Zelene"],
+  ["zemljane", "Zemljane"],
+  ["bijele-crne", "Bijele i crne"],
+  ["zlatne", "Zlatne"],
+  ["srebrne", "Srebrne"],
+  ["bronza-bakar", "Bronza i bakar"],
+  ["biserne", "Biserne"],
+  ["visebojne", "Višebojne"],
+] as const;

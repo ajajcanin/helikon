@@ -94,21 +94,7 @@ function colourOf(name: string): string {
 
 /** True when the name states a colour ("Line - English - Bosnian") or the product is a paint. These need a family. */
 /** Families for filters and the admin, in display order. */
-export const COLOUR_FAMILIES = [
-  ["zute", "Žute"],
-  ["narandzaste", "Narandžaste"],
-  ["crvene", "Crvene"],
-  ["ljubicaste", "Ljubičaste"],
-  ["plave", "Plave"],
-  ["zelene", "Zelene"],
-  ["zemljane", "Zemljane"],
-  ["bijele-crne", "Bijele i crne"],
-  ["zlatne", "Zlatne"],
-  ["srebrne", "Srebrne"],
-  ["bronza-bakar", "Bronza i bakar"],
-  ["biserne", "Biserne"],
-  ["visebojne", "Višebojne"],
-] as const;
+export { COLOUR_FAMILIES } from "@/lib/colour-families";
 
 export function namesColour(name: string, top: string): boolean {
   return top === "Boje" || / - .+ - /.test(name);
