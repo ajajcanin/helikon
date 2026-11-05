@@ -79,34 +79,6 @@ export async function replacePhoto(
   await deleteUnusedFile(old);
 }
 
-/** Moves a photo one place among those shown with it. The product's first photo is the one shown on product cards. */
-export async function movePhoto(id: number, direction: "up" | "down", actor: AuditActor) {
-  await db.$transaction(async (tx) => {
-    const photo = await tx.productPhoto.findUnique({ where: { id } });
-    if (!photo) throw new UserError("Slika ne postoji.");
-    const all = await tx.productPhoto.findMany({
-      where: { productId: photo.productId },
-      orderBy: [{ sort: "asc" }, { id: "asc" }],
-      select: { id: true, variantId: true },
-    });
-    const group = all.filter((p) => p.variantId === photo.variantId);
-    const other = group[group.findIndex((p) => p.id === id) + (direction === "up" ? -1 : 1)];
-    if (!other) return;
-    const order = all.map((p) => p.id);
-    const from = order.indexOf(id);
-    const to = order.indexOf(other.id);
-    [order[from], order[to]] = [order[to]!, order[from]!];
-    for (const [sort, photoId] of order.entries())
-      await tx.productPhoto.update({ where: { id: photoId }, data: { sort } });
-    await audit(tx, actor, {
-      action: "update",
-      table: "product",
-      recordId: photo.productId,
-      summary: "Promijenjen redoslijed slika",
-    });
-  });
-}
-
 export async function deletePhoto(id: number, actor: AuditActor) {
   const photo = await db.$transaction(async (tx) => {
     const found = await tx.productPhoto.findUnique({ where: { id } });

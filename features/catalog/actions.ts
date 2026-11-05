@@ -14,7 +14,7 @@ import {
   renameLine,
   renameManufacturer,
 } from "./manufacturers";
-import { addPhoto, deletePhoto, movePhoto, photoName, replacePhoto } from "./photos";
+import { addPhoto, deletePhoto, photoName, replacePhoto } from "./photos";
 import { adjustStock, setProductStatus } from "./products";
 import {
   confirmProducts,
@@ -174,14 +174,6 @@ export const replaceProductPhoto = productAction(
   async ({ id, productId, key }, user) => {
     const image = await finishUpload(key, "products", await photoName(productId));
     await replacePhoto(id, productId, image, actorOf(user));
-    return { data: undefined };
-  },
-);
-
-export const reorderPhoto = productAction(
-  z.object({ id, direction: z.enum(["up", "down"]) }),
-  async ({ id, direction }, user) => {
-    await movePhoto(id, direction, actorOf(user));
     return { data: undefined };
   },
 );

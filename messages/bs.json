@@ -75,7 +75,6 @@
     "photoReplace": "Zamijeni sliku",
     "photoRemove": "Ukloni sliku",
     "photoUploading": "Šalje se…",
-    "photoCount": "Sve slike ({count})",
     "leaveTitle": "Imate nesačuvane izmjene",
     "leaveText": "Ako odustanete, izmjene se neće sačuvati.",
     "leaveStay": "Ostani",
@@ -546,12 +545,8 @@
   },
   "photos": {
     "title": "Slike artikla",
-    "hint": "Prva slika se prikazuje u katalogu. JPG, PNG ili WEBP, do 25 MB.",
-    "add": "Dodaj slike",
-    "uploading": "Šalje se…",
-    "addOne": "Dodaj sliku",
-    "none": "Nema slike.",
-    "sizeHint": "Svaka veličina ima svoju sliku. Veličina bez slike prikazuje sliku druge veličine."
+    "hint": "JPG, PNG ili WEBP, do 25 MB.",
+    "sizeHint": "Svaka veličina ima jednu sliku. Veličina bez slike prikazuje sliku druge veličine."
   },
   "editor": {
     "bold": "Podebljano",

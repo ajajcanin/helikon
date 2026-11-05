@@ -7,7 +7,6 @@ import { Button } from "@/components/atoms/Button";
 import { Caption } from "@/components/atoms/Caption";
 import { ProductImage } from "@/components/atoms/ProductImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
-import { Link } from "@/i18n/navigation";
 import { mediaUrl } from "@/lib/media";
 import { uploadImage } from "@/lib/upload-image";
 import {
@@ -114,14 +113,12 @@ function PhotoSlot({
   variantId,
   label,
   photo,
-  allPhotos,
   wide,
 }: {
   productId: number;
   variantId?: number;
   label?: string;
   photo?: ReviewRow["photos"][number];
-  allPhotos: number;
   wide?: boolean;
 }) {
   const t = useTranslations("review");
@@ -161,9 +158,9 @@ function PhotoSlot({
   const action =
     "font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline disabled:opacity-45";
   return (
-    <div className={`flex w-full flex-col gap-2 ${wide ? "" : "md:w-44 md:shrink-0"}`}>
+    <div className={`flex w-full flex-col gap-2 ${wide ? "" : "md:w-56 md:shrink-0"}`}>
       {label && <span className="font-ui text-xs text-[var(--text-secondary)]">{label}</span>}
-      <div className="flex h-44 items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)]">
+      <div className="flex h-56 items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)]">
         {photo ? (
           <a
             href={mediaUrl(photo.storageKey, photo.width, photo.width)}
@@ -179,7 +176,7 @@ function PhotoSlot({
               width={photo.width}
               height={photo.height}
               alt=""
-              sizes="176px"
+              sizes="224px"
               className="h-full w-full"
             />
           </a>
@@ -204,25 +201,18 @@ function PhotoSlot({
             {t("photoRemove")}
           </button>
         )}
-        {allPhotos > 1 && !label && (
-          <Link href={`/admin/artikli/${productId}`} className={action}>
-            {t("photoCount", { count: allPhotos })}
-          </Link>
-        )}
       </div>
       <div aria-live="polite">{error && <Caption tone="error">{error}</Caption>}</div>
     </div>
   );
 }
 
-/** The product's photo, the one customers see first, or one place per size when it comes in several. */
-function ReviewPhoto({ row }: { row: ReviewRow }) {
-  const t = useTranslations("review");
+/** One photo per product, or one per size when it comes in several. */
+export function ReviewPhoto({ row }: { row: ReviewRow }) {
   const sizes = row.variants.filter((v) => v.size);
-  if (sizes.length < 2)
-    return <PhotoSlot productId={row.id} photo={row.photos[0]} allPhotos={row.photos.length} />;
+  if (sizes.length < 2) return <PhotoSlot productId={row.id} photo={row.photos[0]} />;
   return (
-    <div className="w-full md:w-[368px] md:shrink-0">
+    <div className="w-full md:w-[460px] md:shrink-0">
       <div className="grid grid-cols-2 gap-3">
         {sizes.map((v, index) => (
           <PhotoSlot
@@ -234,19 +224,10 @@ function ReviewPhoto({ row }: { row: ReviewRow }) {
               row.photos.find((p) => p.variantId === v.id) ??
               (index === 0 ? row.photos.find((p) => !sizes.some((s) => s.id === p.variantId)) : undefined)
             }
-            allPhotos={row.photos.length}
             wide
           />
         ))}
       </div>
-      {row.photos.length > 0 && (
-        <Link
-          href={`/admin/artikli/${row.id}`}
-          className="mt-2 inline-block font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline"
-        >
-          {t("photoCount", { count: row.photos.length })}
-        </Link>
-      )}
     </div>
   );
 }
