@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { addPhoto, listPhotos, replacePhoto } from "@/features/catalog/photos";
+import { addPhoto, listPhotos, movePhoto, replacePhoto } from "@/features/catalog/photos";
 import {
   confirmProducts,
   listForReview,
@@ -117,6 +117,33 @@ describe("confirmation page", () => {
 
     const [row] = (await listForReview({ photo: "present" })).rows;
     expect(row!.photos).toMatchObject([{ id: added.id, ...image }]);
+  });
+
+  it("adds a photo for a size of its own product only", async () => {
+    const a = await seedVariant();
+    const b = await seedVariant();
+    const image = { storageKey: "products/a-1", width: 320, height: 320 };
+
+    const general = await addPhoto(a.productId, image, actor);
+    expect(general.variantId).toBeNull();
+    const own = await addPhoto(a.productId, image, actor, a.id);
+    expect(own.variantId).toBe(a.id);
+
+    await expect(addPhoto(a.productId, image, actor, b.id)).rejects.toThrow("Veličina ne postoji.");
+  });
+
+  it("moves a photo only among those shown with it", async () => {
+    const a = await seedVariant();
+    const image = { storageKey: "products/a-1", width: 320, height: 320 };
+    const general = await addPhoto(a.productId, image, actor);
+    const first = await addPhoto(a.productId, image, actor, a.id);
+    const second = await addPhoto(a.productId, image, actor, a.id);
+
+    await movePhoto(second.id, "up", actor);
+    expect((await listPhotos(a.productId)).map((p) => p.id)).toEqual([general.id, second.id, first.id]);
+
+    await movePhoto(second.id, "up", actor);
+    expect((await listPhotos(a.productId)).map((p) => p.id)).toEqual([general.id, second.id, first.id]);
   });
 
   it("replacing a photo keeps its place and drops the old description", async () => {

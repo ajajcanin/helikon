@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/atoms/Button";
 import { useCart } from "@/lib/cart";
+import { useSelectedVariant } from "@/lib/selected-variant";
 import { QuantityStepper } from "./QuantityStepper";
 
 type Variant = { id: number; sku: string; size: string | null; priceLabel: string; stockQty: number };
@@ -11,8 +12,7 @@ type Variant = { id: number; sku: string; size: string | null; priceLabel: strin
 export function AddToCart({ variants }: { variants: Variant[] }) {
   const t = useTranslations("shop");
   const { add } = useCart();
-  const firstInStock = variants.find((v) => v.stockQty > 0) ?? variants[0];
-  const [selectedId, setSelectedId] = useState(firstInStock?.id);
+  const { selectedId, select } = useSelectedVariant();
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const selected = variants.find((v) => v.id === selectedId);
@@ -32,7 +32,7 @@ export function AddToCart({ variants }: { variants: Variant[] }) {
                 type="button"
                 aria-pressed={v.id === selectedId}
                 onClick={() => {
-                  setSelectedId(v.id);
+                  select(v.id);
                   setQty(1);
                   setAdded(false);
                 }}

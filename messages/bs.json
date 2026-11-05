@@ -541,10 +541,13 @@
   },
   "photos": {
     "title": "Slike artikla",
-    "hint": "Prva slika se prikazuje u katalogu. JPG, PNG ili WEBP, do 25 MB, najviše 8 slika.",
-    "alt": "Opis slike (za pretragu i slabovide)",
+    "hint": "Prva slika se prikazuje u katalogu. JPG, PNG ili WEBP, do 25 MB.",
     "add": "Dodaj slike",
-    "uploading": "Šalje se…"
+    "uploading": "Šalje se…",
+    "addOne": "Dodaj sliku",
+    "others": "Ostale slike",
+    "none": "Nema slike.",
+    "sizeHint": "Svaka veličina ima svoju sliku. Veličina bez slike prikazuje sliku druge veličine."
   },
   "editor": {
     "bold": "Podebljano",

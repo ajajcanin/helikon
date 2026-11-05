@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PaintSwatch } from "@/components/atoms/PaintSwatch";
-import { ProductImage } from "@/components/atoms/ProductImage";
 import { LineColours } from "@/features/catalog/components/shop/LineColours";
 import { ProductCard, ProductGrid } from "@/features/catalog/components/shop/ProductCard";
+import { ProductGallery } from "@/features/catalog/components/shop/ProductGallery";
 import { AddToCart } from "@/features/orders/components/AddToCart";
 import { Link } from "@/i18n/navigation";
 import { displayName, swatchColour } from "@/lib/colour-swatch";
 import { km } from "@/lib/money";
+import { SelectedVariantProvider } from "@/lib/selected-variant";
 import { cachedLineColours, cachedProduct, cachedRelated } from "@/server/public/cached";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -52,6 +53,7 @@ export default async function ProductPage({ params }: Props) {
       .map((s): [string, string] => [s.label, s.value]),
   ];
   const name = displayName(product);
+  const firstInStock = product.variants.find((v) => v.stockQty > 0) ?? product.variants[0];
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-10 pb-[88px]">
       <nav aria-label={t("nav")} className="mb-6 font-ui text-xs tracking-[0.08em] text-[var(--text-muted)]">
@@ -65,87 +67,85 @@ export default async function ProductPage({ params }: Props) {
         <span className="mx-2">·</span>
         <span className="text-[var(--text-secondary)]">{name}</span>
       </nav>
-      <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
-        <div className="md:sticky md:top-32">
-          {product.photos.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3">
-              {product.photos.map((photo, index) => (
-                <ProductImage
-                  key={photo.storageKey}
-                  storageKey={photo.storageKey}
-                  width={photo.width}
-                  height={photo.height}
-                  alt={photo.alt ?? name}
-                  sizes={index === 0 ? "(max-width: 768px) 100vw, 50vw" : "(max-width: 768px) 50vw, 25vw"}
-                  priority={index === 0}
-                  className={`aspect-square w-full border border-[var(--border-subtle)] ${index === 0 ? "col-span-2" : ""}`}
-                />
-              ))}
-            </div>
-          ) : (
-            <>
-              <PaintSwatch
-                color={swatchColour(product.colourFamily)}
-                className="aspect-square border border-[var(--border-subtle)]"
+      <SelectedVariantProvider initialId={firstInStock?.id}>
+        <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
+          <div className="md:sticky md:top-32">
+            {product.photos.length > 0 ? (
+              <ProductGallery
+                photos={product.photos.map((photo) => ({
+                  ...photo,
+                  alt:
+                    photo.alt ??
+                    [product.name, product.variants.find((v) => v.id === photo.variantId)?.size]
+                      .filter(Boolean)
+                      .join(", "),
+                }))}
               />
-              {product.colourFamily && (
-                <p className="mt-3 font-ui text-[11px] tracking-[0.14em] text-[var(--text-muted)] uppercase">
-                  {t("swatchNote")}
-                </p>
-              )}
-            </>
-          )}
+            ) : (
+              <>
+                <PaintSwatch
+                  color={swatchColour(product.colourFamily)}
+                  className="aspect-square border border-[var(--border-subtle)]"
+                />
+                {product.colourFamily && (
+                  <p className="mt-3 font-ui text-[11px] tracking-[0.14em] text-[var(--text-muted)] uppercase">
+                    {t("swatchNote")}
+                  </p>
+                )}
+              </>
+            )}
+          </div>
+          <div>
+            <span className="font-ui text-xs tracking-[0.2em] text-[var(--accent-bright)] uppercase">
+              {product.category?.name}
+            </span>
+            <h1 className="mt-2.5 font-display text-[32px] leading-[1.08] font-semibold tracking-[0.04em] text-[var(--text-display)] md:text-[46px]">
+              {name}
+            </h1>
+            {product.description && (
+              <p className="mt-5 font-body text-[19px] leading-relaxed text-[var(--text-secondary)]">
+                {product.description}
+              </p>
+            )}
+            <hr className="hk-rule my-7" />
+            <AddToCart
+              variants={product.variants.map((v) => ({
+                id: v.id,
+                sku: v.sku,
+                size: v.size,
+                stockQty: v.stockQty,
+                priceLabel: km(v.price),
+              }))}
+            />
+            {showColours && product.line && (
+              <LineColours line={product.line.name} colours={colours} currentId={product.id} />
+            )}
+            {rows.some(([, value]) => value) && (
+              <>
+                <hr className="hk-rule mt-8 mb-5" />
+                <h2 className="mb-1.5 font-display text-xl font-medium tracking-[0.05em] text-[var(--text-display)] uppercase">
+                  {t("specs")}
+                </h2>
+                <dl>
+                  {rows
+                    .filter(([, value]) => value)
+                    .map(([label, value]) => (
+                      <div
+                        key={label}
+                        className="grid grid-cols-2 gap-2 border-b border-[var(--border-subtle)] py-3"
+                      >
+                        <dt className="self-center font-ui text-[11px] tracking-[0.16em] text-[var(--text-muted)] uppercase">
+                          {label}
+                        </dt>
+                        <dd className="text-right font-body text-[17px]">{value}</dd>
+                      </div>
+                    ))}
+                </dl>
+              </>
+            )}
+          </div>
         </div>
-        <div>
-          <span className="font-ui text-xs tracking-[0.2em] text-[var(--accent-bright)] uppercase">
-            {product.category?.name}
-          </span>
-          <h1 className="mt-2.5 font-display text-[32px] leading-[1.08] font-semibold tracking-[0.04em] text-[var(--text-display)] md:text-[46px]">
-            {name}
-          </h1>
-          {product.description && (
-            <p className="mt-5 font-body text-[19px] leading-relaxed text-[var(--text-secondary)]">
-              {product.description}
-            </p>
-          )}
-          <hr className="hk-rule my-7" />
-          <AddToCart
-            variants={product.variants.map((v) => ({
-              id: v.id,
-              sku: v.sku,
-              size: v.size,
-              stockQty: v.stockQty,
-              priceLabel: km(v.price),
-            }))}
-          />
-          {showColours && product.line && (
-            <LineColours line={product.line.name} colours={colours} currentId={product.id} />
-          )}
-          {rows.some(([, value]) => value) && (
-            <>
-              <hr className="hk-rule mt-8 mb-5" />
-              <h2 className="mb-1.5 font-display text-xl font-medium tracking-[0.05em] text-[var(--text-display)] uppercase">
-                {t("specs")}
-              </h2>
-              <dl>
-                {rows
-                  .filter(([, value]) => value)
-                  .map(([label, value]) => (
-                    <div
-                      key={label}
-                      className="grid grid-cols-2 gap-2 border-b border-[var(--border-subtle)] py-3"
-                    >
-                      <dt className="self-center font-ui text-[11px] tracking-[0.16em] text-[var(--text-muted)] uppercase">
-                        {label}
-                      </dt>
-                      <dd className="text-right font-body text-[17px]">{value}</dd>
-                    </div>
-                  ))}
-              </dl>
-            </>
-          )}
-        </div>
-      </div>
+      </SelectedVariantProvider>
       {related.length > 0 && (
         <section className="mt-[72px]">
           <h2 className="mb-5 font-display text-[28px] font-medium tracking-[0.05em] text-[var(--text-display)]">

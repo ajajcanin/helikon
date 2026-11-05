@@ -1,6 +1,7 @@
 import "server-only";
 import type { Prisma } from "@/generated/prisma/client";
 import { displayName } from "@/lib/colour-swatch";
+import { cardPhoto } from "@/lib/product-photos";
 import { db } from "@/server/db";
 
 /**
@@ -22,8 +23,7 @@ const cardSelect = {
   variants: { where: { active: true }, orderBy: { sort: "asc" }, select: variantSelect },
   photos: {
     orderBy: { sort: "asc" },
-    take: 1,
-    select: { storageKey: true, alt: true, width: true, height: true },
+    select: { storageKey: true, alt: true, width: true, height: true, variantId: true },
   },
 } satisfies Prisma.ProductSelect;
 
@@ -32,11 +32,24 @@ type WithPlainPrices<P extends { variants: { price: unknown }[] }> = Omit<P, "va
   variants: (Omit<P["variants"][number], "price"> & { price: number })[];
 };
 
+type CardPhotos = {
+  variants: { id: number }[];
+  photos: Prisma.ProductPhotoGetPayload<{
+    select: { storageKey: true; alt: true; width: true; height: true; variantId: true };
+  }>[];
+};
+
 const withPlainPrices = <P extends { variants: { price: { toNumber(): number } }[] }>(product: P) =>
   ({
     ...product,
     variants: product.variants.map((v) => ({ ...v, price: v.price.toNumber() })),
   }) as unknown as WithPlainPrices<P>;
+
+/** A product for cards and search, which show one photo. */
+const toCard = <P extends Parameters<typeof withPlainPrices>[0] & CardPhotos>(product: P) => {
+  const photo = cardPhoto(product.photos, product.variants);
+  return { ...withPlainPrices(product), photos: photo ? [photo] : [] };
+};
 
 export type CatalogFilters = {
   categorySlug?: string;
@@ -133,10 +146,10 @@ export async function listPublishedProducts(filters: CatalogFilters = {}) {
     });
     const ids = ranked.map((r) => r.productId);
     const rows = await db.product.findMany({ where: { id: { in: ids } }, select: cardSelect });
-    return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
+    return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(toCard);
   }
   const rows = await db.product.findMany({ where, select: cardSelect, orderBy: { name: "asc" }, take, skip });
-  return rows.map(withPlainPrices);
+  return rows.map(toCard);
 }
 
 /** Staff's chosen products, in their order. Anything hidden or out of stock is simply left out. */
@@ -145,7 +158,7 @@ export async function listFeaturedProducts(ids: number[]) {
     where: { ...catalogWhere({ inStock: true }), id: { in: ids } },
     select: cardSelect,
   });
-  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
+  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(toCard);
 }
 
 /** Products attached to an article, in order, including sold-out ones: the text around them still makes sense. */
@@ -155,7 +168,7 @@ export async function listProductsForArticle(ids: number[]) {
     where: { ...catalogWhere({}), id: { in: ids } },
     select: cardSelect,
   });
-  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(withPlainPrices);
+  return ids.flatMap((id) => rows.find((r) => r.id === id) ?? []).map(toCard);
 }
 
 /** The first matches for the search box, with only what its list shows. */
@@ -270,7 +283,7 @@ export async function getPublishedProduct(slug: string) {
       variants: { where: { active: true }, orderBy: { sort: "asc" }, select: variantSelect },
       photos: {
         orderBy: { sort: "asc" },
-        select: { storageKey: true, alt: true, width: true, height: true },
+        select: { storageKey: true, alt: true, width: true, height: true, variantId: true },
       },
     },
   });
@@ -306,5 +319,5 @@ export async function listRelatedProducts(productId: number, categoryId: number 
     orderBy: { name: "asc" },
     take,
   });
-  return rows.map(withPlainPrices);
+  return rows.map(toCard);
 }

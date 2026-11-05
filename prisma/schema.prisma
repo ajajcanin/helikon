@@ -129,6 +129,7 @@ model ProductVariant {
   cost       VariantCost?
   movements  StockMovement[]
   orderLines OrderLine[]
+  photos     ProductPhoto[]
 
   @@index([productId])
   @@map("product_variant")
@@ -150,6 +151,8 @@ model VariantCost {
 model ProductPhoto {
   id        Int     @id @default(autoincrement())
   productId Int     @map("product_id")
+  /// The size this photo shows; empty when it is for every size
+  variantId Int?    @map("variant_id")
   /// Key prefix in object storage; the sizes sit under it (see server/images.ts)
   storageKey String @map("storage_key")
   alt       String?
@@ -157,9 +160,11 @@ model ProductPhoto {
   height    Int
   sort      Int     @default(0)
 
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 
   @@index([productId, sort])
+  @@index([variantId])
   @@map("product_photo")
 }
 

@@ -27,7 +27,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       >
         {c("back")}
       </Link>
-      <PhotoManager productId={id} photos={photos} />
+      <PhotoManager
+        productId={id}
+        photos={photos}
+        sizes={row.variants.flatMap((v) => (v.size ? [{ id: v.id, size: v.size }] : []))}
+      />
       <ProductControls id={id} status={product.status} variants={row.variants} />
       <ul>
         <ReviewCard row={row} options={options} />

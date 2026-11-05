@@ -1,5 +1,6 @@
 import { Decimal } from "decimal.js";
 import { mediaUrl } from "@/lib/media";
+import { cardPhoto } from "@/lib/product-photos";
 import { UserError } from "@/server/admin/action";
 import type { AuditActor } from "@/server/audit";
 import { FEATURED_KEY, FEATURED_MAX, getFeaturedIds } from "@/server/content";
@@ -17,9 +18,9 @@ const rowSelect = {
   variants: {
     where: { active: true },
     orderBy: { sort: "asc" },
-    select: { sku: true, price: true, stockQty: true },
+    select: { id: true, sku: true, price: true, stockQty: true },
   },
-  photos: { orderBy: { sort: "asc" }, take: 1, select: { storageKey: true, width: true } },
+  photos: { orderBy: { sort: "asc" }, select: { storageKey: true, width: true, variantId: true } },
 } as const;
 
 type Row = Awaited<ReturnType<typeof loadRows>>[number];
@@ -31,7 +32,7 @@ function loadRows(where: { id: { in: number[] } } | object, take?: number) {
 function toRow(p: Row) {
   const prices = p.variants.map((v) => new Decimal(v.price.toString()));
   const stock = p.variants.reduce((sum, v) => sum + v.stockQty, 0);
-  const photo = p.photos[0];
+  const photo = cardPhoto(p.photos, p.variants);
   return {
     id: p.id,
     name: p.colourName ?? p.colourNameMaker ?? p.name,

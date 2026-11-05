@@ -107,15 +107,28 @@ function SelectEdit({
   );
 }
 
-/** Shows the product's first photo, the one customers see first, and replaces, removes or adds it. */
-function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewRow["photos"] }) {
+/** One place for a photo: replaces or removes the one it holds, or adds one, for the size when it has one. */
+function PhotoSlot({
+  productId,
+  variantId,
+  label,
+  photo,
+  allPhotos,
+  wide,
+}: {
+  productId: number;
+  variantId?: number;
+  label?: string;
+  photo?: ReviewRow["photos"][number];
+  allPhotos: number;
+  wide?: boolean;
+}) {
   const t = useTranslations("review");
   const c = useTranslations("common");
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const photo = photos[0];
 
   function upload(file: File | undefined) {
     if (!file) return;
@@ -126,7 +139,7 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
         finish: (key) =>
           photo
             ? replaceProductPhoto({ id: photo.id, productId, key })
-            : finishProductPhoto({ productId, key }),
+            : finishProductPhoto({ productId, key, variantId }),
       });
       if (input.current) input.current.value = "";
       if ("error" in res) setError(res.error);
@@ -147,7 +160,8 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
   const action =
     "font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline disabled:opacity-45";
   return (
-    <div className="flex w-full flex-col gap-2 md:w-44 md:shrink-0">
+    <div className={`flex w-full flex-col gap-2 ${wide ? "" : "md:w-44 md:shrink-0"}`}>
+      {label && <span className="font-ui text-xs text-[var(--text-secondary)]">{label}</span>}
       <div className="flex h-44 items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)]">
         {photo ? (
           <a
@@ -177,7 +191,7 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
         type="file"
         accept="image/jpeg,image/png,image/webp"
         hidden
-        aria-label={photo ? t("photoReplace") : t("photoAdd")}
+        aria-label={`${photo ? t("photoReplace") : t("photoAdd")}${label ? `: ${label}` : ""}`}
         onChange={(e) => upload(e.target.files?.[0])}
       />
       <div className="flex flex-wrap gap-x-3 gap-y-1">
@@ -189,13 +203,46 @@ function ReviewPhoto({ productId, photos }: { productId: number; photos: ReviewR
             {t("photoRemove")}
           </button>
         )}
-        {photos.length > 1 && (
+        {allPhotos > 1 && !label && (
           <Link href={`/admin/artikli/${productId}`} className={action}>
-            {t("photoCount", { count: photos.length })}
+            {t("photoCount", { count: allPhotos })}
           </Link>
         )}
       </div>
       <div aria-live="polite">{error && <Caption tone="error">{error}</Caption>}</div>
+    </div>
+  );
+}
+
+/** The product's photo, the one customers see first, or one place per size when it comes in several. */
+function ReviewPhoto({ row }: { row: ReviewRow }) {
+  const t = useTranslations("review");
+  const sizes = row.variants.filter((v) => v.size);
+  if (sizes.length < 2)
+    return <PhotoSlot productId={row.id} photo={row.photos[0]} allPhotos={row.photos.length} />;
+  return (
+    <div className="w-full md:w-[368px] md:shrink-0">
+      <div className="grid grid-cols-2 gap-3">
+        {sizes.map((v) => (
+          <PhotoSlot
+            key={v.id}
+            productId={row.id}
+            variantId={v.id}
+            label={v.size ?? undefined}
+            photo={row.photos.find((p) => p.variantId === v.id)}
+            allPhotos={row.photos.length}
+            wide
+          />
+        ))}
+      </div>
+      {row.photos.length > 0 && (
+        <Link
+          href={`/admin/artikli/${row.id}`}
+          className="mt-2 inline-block font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline"
+        >
+          {t("photoCount", { count: row.photos.length })}
+        </Link>
+      )}
     </div>
   );
 }
@@ -294,7 +341,7 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
       )}
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <ReviewPhoto productId={row.id} photos={row.photos} />
+        <ReviewPhoto row={row} />
         <div className="grid flex-1 gap-3 md:grid-cols-3">
           <TextEdit label={f("name")} value={row.name} save={save("name")} />
           <SelectEdit

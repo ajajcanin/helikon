@@ -214,7 +214,7 @@ export type ReviewFilters = {
 const reviewInclude = {
   photos: {
     orderBy: [{ sort: "asc" }, { id: "asc" }],
-    select: { id: true, storageKey: true, width: true, height: true },
+    select: { id: true, storageKey: true, width: true, height: true, variantId: true },
   },
   variants: {
     orderBy: { sort: "asc" },
