@@ -153,7 +153,8 @@ export function PhotoManager({
 }) {
   const t = useTranslations("photos");
   const bySize = sizes.length > 1;
-  const others = photos.filter((p) => !sizes.some((s) => s.id === p.variantId));
+  // A photo without a size still needs a place to be managed, so it sits under the first size.
+  const unlinked = photos.filter((p) => !sizes.some((s) => s.id === p.variantId));
   return (
     <section className="mb-4 border border-[var(--border-subtle)] p-4">
       <h2 className="mb-1 font-display text-base tracking-[0.04em]">{t("title")}</h2>
@@ -163,7 +164,7 @@ export function PhotoManager({
       </p>
       {bySize ? (
         <>
-          {sizes.map((s) => (
+          {sizes.map((s, index) => (
             <PhotoGroup
               key={s.id}
               productId={productId}
@@ -171,10 +172,9 @@ export function PhotoManager({
               title={s.size}
               empty={t("none")}
               addLabel={t("addOne")}
-              photos={photos.filter((p) => p.variantId === s.id)}
+              photos={[...photos.filter((p) => p.variantId === s.id), ...(index === 0 ? unlinked : [])]}
             />
           ))}
-          {others.length > 0 && <PhotoGroup productId={productId} title={t("others")} photos={others} />}
         </>
       ) : (
         <PhotoGroup productId={productId} addLabel={t("add")} photos={photos} />

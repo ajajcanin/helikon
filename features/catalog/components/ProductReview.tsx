@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { Button } from "@/components/atoms/Button";
 import { Caption } from "@/components/atoms/Caption";
 import { ProductImage } from "@/components/atoms/ProductImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
@@ -223,13 +224,16 @@ function ReviewPhoto({ row }: { row: ReviewRow }) {
   return (
     <div className="w-full md:w-[368px] md:shrink-0">
       <div className="grid grid-cols-2 gap-3">
-        {sizes.map((v) => (
+        {sizes.map((v, index) => (
           <PhotoSlot
             key={v.id}
             productId={row.id}
             variantId={v.id}
             label={v.size ?? undefined}
-            photo={row.photos.find((p) => p.variantId === v.id)}
+            photo={
+              row.photos.find((p) => p.variantId === v.id) ??
+              (index === 0 ? row.photos.find((p) => !sizes.some((s) => s.id === p.variantId)) : undefined)
+            }
             allPhotos={row.photos.length}
             wide
           />
@@ -247,8 +251,20 @@ function ReviewPhoto({ row }: { row: ReviewRow }) {
   );
 }
 
-export function ReviewCard({ row, options }: { row: ReviewRow; options: Options }) {
+export function ReviewCard({
+  row,
+  options,
+  editOnly,
+  onCancel,
+}: {
+  row: ReviewRow;
+  options: Options;
+  /** On the product's own page: only the fields, kept until Save, without confirming, its note and its photos. */
+  editOnly?: boolean;
+  onCancel?: () => void;
+}) {
   const t = useTranslations("review");
+  const c = useTranslations("common");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirmed, setConfirmed] = useState(row.confirmed);
@@ -260,8 +276,55 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
   // Clicking Potvrdi leaves the field being typed in, so its save is still running when confirm starts.
   const saving = useRef<Promise<unknown>>(Promise.resolve());
   const failed = useRef(new Set<string>());
+  // On the product's own page, changes wait here until Save. Each stays until it has been saved.
+  const drafts = useRef(new Map<string, () => Promise<Result>>());
+  const [dirty, setDirty] = useState(false);
+  const [leaving, setLeaving] = useState<{ go: () => void } | null>(null);
+
+  // Asks before leaving with unsaved changes. Closing or reloading the tab can only get the browser's own question.
+  useEffect(() => {
+    if (!dirty) return;
+    const beforeUnload = (e: BeforeUnloadEvent) => e.preventDefault();
+    const click = (e: MouseEvent) => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const link = (e.target as Element).closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target === "_blank" || link.origin !== window.location.origin) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setLeaving({ go: () => router.push(link.pathname + link.search) });
+    };
+    window.addEventListener("beforeunload", beforeUnload);
+    document.addEventListener("click", click, true);
+    return () => {
+      window.removeEventListener("beforeunload", beforeUnload);
+      document.removeEventListener("click", click, true);
+    };
+  }, [dirty, router]);
+
+  function saveDrafts() {
+    start(async () => {
+      let changed = false;
+      let error: string | null = null;
+      for (const [key, send] of drafts.current) {
+        const res = await send().catch((): Result => ({ ok: false, error: "" }));
+        if (res.ok) {
+          drafts.current.delete(key);
+          changed ||= res.data.changed;
+        } else {
+          error = res.error || t("error");
+        }
+      }
+      setMessage(error ? { tone: "error", text: error } : changed ? { tone: "ok", text: t("saved") } : null);
+      if (!error) setDirty(false);
+      if (changed) router.refresh();
+    });
+  }
 
   const run = (key: string, fn: () => Promise<Result>) => {
+    if (editOnly) {
+      drafts.current.set(key, fn);
+      return;
+    }
     const save = fn()
       .catch((): Result => ({ ok: false, error: "" }))
       .then((res) => {
@@ -302,46 +365,49 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
     <li
       className={`border p-4 ${confirmed ? "border-[var(--accent)]" : "border-[var(--border-subtle)]"}`}
       data-product={row.id}
+      onInput={editOnly ? () => setDirty(true) : undefined}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-display text-base tracking-[0.04em]">{row.name}</h2>
-        <div className="flex items-center gap-3 font-ui text-xs">
-          <span
-            className={confirmed ? "text-[var(--accent-bright)]" : "text-[var(--text-muted)]"}
-            role="status"
-          >
-            {confirmed ? t("confirmed") : t("open")}
-          </span>
-          {confirmed ? (
-            <button
-              type="button"
-              onClick={() => setStatus(false)}
-              disabled={pending}
-              className="rounded-[2px] border border-[var(--border-strong)] px-3 py-1.5 text-[var(--text-secondary)] disabled:opacity-45"
+        {!editOnly && (
+          <div className="flex items-center gap-3 font-ui text-xs">
+            <span
+              className={confirmed ? "text-[var(--accent-bright)]" : "text-[var(--text-muted)]"}
+              role="status"
             >
-              {t("unconfirm")}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setStatus(true)}
-              disabled={pending}
-              className="rounded-[2px] bg-[var(--accent)] px-3 py-1.5 font-semibold text-[var(--text-on-accent)] disabled:opacity-45"
-            >
-              {t("confirm")}
-            </button>
-          )}
-        </div>
+              {confirmed ? t("confirmed") : t("open")}
+            </span>
+            {confirmed ? (
+              <button
+                type="button"
+                onClick={() => setStatus(false)}
+                disabled={pending}
+                className="rounded-[2px] border border-[var(--border-strong)] px-3 py-1.5 text-[var(--text-secondary)] disabled:opacity-45"
+              >
+                {t("unconfirm")}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setStatus(true)}
+                disabled={pending}
+                className="rounded-[2px] bg-[var(--accent)] px-3 py-1.5 font-semibold text-[var(--text-on-accent)] disabled:opacity-45"
+              >
+                {t("confirm")}
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {row.reviewNote && (
+      {!editOnly && row.reviewNote && (
         <p className="mb-3 font-ui text-xs text-[var(--text-muted)]">
           {t("note")}: {row.reviewNote}
         </p>
       )}
 
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
-        <ReviewPhoto row={row} />
+        {!editOnly && <ReviewPhoto row={row} />}
         <div className="grid flex-1 gap-3 md:grid-cols-3">
           <TextEdit label={f("name")} value={row.name} save={save("name")} />
           <SelectEdit
@@ -360,6 +426,7 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
             save={(value) => {
               setManufacturerId(value);
               setLineId("");
+              drafts.current.delete("lineId");
               save("manufacturerId")(value);
             }}
             empty={t("none")}
@@ -441,10 +508,64 @@ export function ReviewCard({ row, options }: { row: ReviewRow; options: Options 
         ))}
       </div>
 
+      {editOnly && (
+        <div className="mt-4 flex gap-3">
+          <Button variant="primary" disabled={pending} onClick={saveDrafts}>
+            {c("save")}
+          </Button>
+          <Button
+            disabled={pending}
+            onClick={() => (dirty ? setLeaving({ go: () => onCancel?.() }) : onCancel?.())}
+          >
+            {c("cancel")}
+          </Button>
+        </div>
+      )}
+      {leaving && (
+        <LeaveDialog
+          onStay={() => setLeaving(null)}
+          onLeave={() => {
+            setDirty(false);
+            setLeaving(null);
+            leaving.go();
+          }}
+        />
+      )}
+
       <div aria-live="polite" className="mt-2">
         {message && <Caption tone={message.tone === "error" ? "error" : undefined}>{message.text}</Caption>}
       </div>
     </li>
+  );
+}
+
+function LeaveDialog({ onStay, onLeave }: { onStay: () => void; onLeave: () => void }) {
+  const t = useTranslations("review");
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => dialog.current?.showModal(), []);
+  return (
+    <dialog
+      ref={dialog}
+      onCancel={onStay}
+      className="m-auto max-w-sm border border-[var(--border-strong)] bg-[var(--bg-well)] p-5 text-[var(--text-display)] backdrop:bg-black/60"
+    >
+      <h2 className="font-display text-base tracking-[0.04em]">{t("leaveTitle")}</h2>
+      <p className="mt-2 font-ui text-sm text-[var(--text-secondary)]">{t("leaveText")}</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Button variant="primary" onClick={onStay}>
+          {t("leaveStay")}
+        </Button>
+        <Button onClick={onLeave}>{t("leaveDiscard")}</Button>
+      </div>
+    </dialog>
+  );
+}
+
+/** A product's fields on its own page. Cancel starts them again from what is saved. */
+export function ProductEditCard({ row, options }: { row: ReviewRow; options: Options }) {
+  const [version, setVersion] = useState(0);
+  return (
+    <ReviewCard key={version} row={row} options={options} editOnly onCancel={() => setVersion(version + 1)} />
   );
 }
 

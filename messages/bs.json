@@ -76,6 +76,10 @@
     "photoRemove": "Ukloni sliku",
     "photoUploading": "Šalje se…",
     "photoCount": "Sve slike ({count})",
+    "leaveTitle": "Imate nesačuvane izmjene",
+    "leaveText": "Ako odustanete, izmjene se neće sačuvati.",
+    "leaveStay": "Ostani",
+    "leaveDiscard": "Odustani od izmjena",
     "confirmPage": "Potvrdi svih {count} na ovoj stranici",
     "confirmed": "Potvrđeno",
     "open": "Za potvrdu",
@@ -110,6 +114,7 @@
   },
   "common": {
     "save": "Sačuvaj",
+    "cancel": "Odustani",
     "add": "Dodaj",
     "delete": "Obriši",
     "saved": "Sačuvano.",
@@ -545,7 +550,6 @@
     "add": "Dodaj slike",
     "uploading": "Šalje se…",
     "addOne": "Dodaj sliku",
-    "others": "Ostale slike",
     "none": "Nema slike.",
     "sizeHint": "Svaka veličina ima svoju sliku. Veličina bez slike prikazuje sliku druge veličine."
   },

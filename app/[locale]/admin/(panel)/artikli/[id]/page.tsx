@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { PhotoManager } from "@/features/catalog/components/PhotoManager";
 import { ProductControls } from "@/features/catalog/components/ProductControls";
-import { ReviewCard } from "@/features/catalog/components/ProductReview";
+import { ProductEditCard } from "@/features/catalog/components/ProductReview";
 import { listPhotos } from "@/features/catalog/photos";
 import { getReviewRow, reviewOptions } from "@/features/catalog/review";
 import { Link } from "@/i18n/navigation";
@@ -34,7 +34,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       />
       <ProductControls id={id} status={product.status} variants={row.variants} />
       <ul>
-        <ReviewCard row={row} options={options} />
+        <ProductEditCard row={row} options={options} />
       </ul>
     </>
   );
