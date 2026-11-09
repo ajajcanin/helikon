@@ -261,6 +261,16 @@
     "openingHours": "Radno vrijeme (svaki red zasebno)",
     "mapQuery": "Lokacija na Google mapi (naziv i adresa)"
   },
+  "motifs": {
+    "title": "Motivi ({count})",
+    "sku": "Šifra",
+    "name": "Motiv",
+    "price": "Cijena (KM)",
+    "stock": "Zaliha",
+    "note": "Razlog promjene zalihe",
+    "save": "Sačuvaj",
+    "saved": "Sačuvano."
+  },
   "history": {
     "title": "Historija promjena",
     "intro": "Ko je šta promijenio. Unosi se ne mogu mijenjati ni brisati.",

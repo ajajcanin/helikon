@@ -109,13 +109,14 @@ function SelectEdit({
 }
 
 /** One place for a photo: replaces or removes the one it holds, or adds one, for the size when it has one. */
-function PhotoSlot({
+export function PhotoSlot({
   productId,
   variantId,
   label,
   photo,
   wide,
   compact,
+  thumb,
 }: {
   productId: number;
   variantId?: number;
@@ -124,6 +125,8 @@ function PhotoSlot({
   wide?: boolean;
   /** Smaller, for a series with many motifs. */
   compact?: boolean;
+  /** A thumbnail beside a motif's other fields. */
+  thumb?: boolean;
 }) {
   const t = useTranslations("review");
   const c = useTranslations("common");
@@ -165,7 +168,7 @@ function PhotoSlot({
     <div className={`flex w-full flex-col gap-2 ${wide ? "" : "md:w-56 md:shrink-0"}`}>
       {label && <span className="font-ui text-xs text-[var(--text-secondary)]">{label}</span>}
       <div
-        className={`flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)] ${compact ? "h-40" : "h-56"}`}
+        className={`flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)] ${thumb ? "h-28" : compact ? "h-40" : "h-56"}`}
       >
         {photo ? (
           <a
@@ -214,7 +217,7 @@ function PhotoSlot({
 }
 
 /** Adds or replaces many motifs' photos at once, each going to the motif whose šifra starts its file name. */
-function MotifUpload({ row }: { row: ReviewRow }) {
+export function MotifUpload({ row }: { row: ReviewRow }) {
   const t = useTranslations("review");
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
@@ -549,34 +552,37 @@ export function ReviewCard({
         <TextEdit label={f("specs")} value={row.specs} rows={4} save={save("specs")} />
       </div>
 
-      <div className="mt-3 grid gap-2">
-        {row.variants.map((v) => (
-          <div key={v.id} className="grid grid-cols-2 items-end gap-3 md:grid-cols-4">
-            <div>
-              <span className={LABEL}>{t("fields.sku")}</span>
-              <span className="font-ui text-sm">{v.sku}</span>
+      {/* A series' motifs are edited row by row above, with their photos. */}
+      {!(editOnly && row.variantKind === "MOTIF") && (
+        <div className="mt-3 grid gap-2">
+          {row.variants.map((v) => (
+            <div key={v.id} className="grid grid-cols-2 items-end gap-3 md:grid-cols-4">
+              <div>
+                <span className={LABEL}>{t("fields.sku")}</span>
+                <span className="font-ui text-sm">{v.sku}</span>
+              </div>
+              <TextEdit
+                label={row.variantKind === "MOTIF" ? t("fields.motif") : t("fields.size")}
+                value={v.size ?? ""}
+                save={(value) =>
+                  run(`size-${v.id}`, () => saveVariantField({ id: v.id, field: "size", value }))
+                }
+              />
+              <TextEdit
+                label={t("fields.price")}
+                value={v.price}
+                save={(value) =>
+                  run(`price-${v.id}`, () => saveVariantField({ id: v.id, field: "price", value }))
+                }
+              />
+              <div>
+                <span className={LABEL}>{t("fields.stock")}</span>
+                <span className="font-ui text-sm">{v.stockQty}</span>
+              </div>
             </div>
-            <TextEdit
-              label={row.variantKind === "MOTIF" ? t("fields.motif") : t("fields.size")}
-              value={v.size ?? ""}
-              save={(value) =>
-                run(`size-${v.id}`, () => saveVariantField({ id: v.id, field: "size", value }))
-              }
-            />
-            <TextEdit
-              label={t("fields.price")}
-              value={v.price}
-              save={(value) =>
-                run(`price-${v.id}`, () => saveVariantField({ id: v.id, field: "price", value }))
-              }
-            />
-            <div>
-              <span className={LABEL}>{t("fields.stock")}</span>
-              <span className="font-ui text-sm">{v.stockQty}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {editOnly && (
         <div className="mt-4 flex gap-3">

@@ -18,10 +18,23 @@ export type AdminPhoto = Awaited<ReturnType<typeof listPhotos>>[number];
  * Names the product's photos in storage: its first šifra, then its slug, so a folder can be found by šifra.
  * They keep the name if the product changes, since the database holds the path.
  */
-export async function photoName(productId: number) {
+export async function photoName(productId: number, of: { variantId?: number; photoId?: number } = {}) {
+  const photo = of.photoId
+    ? await db.productPhoto.findUnique({ where: { id: of.photoId }, select: { variantId: true } })
+    : null;
+  const variantId = of.variantId ?? photo?.variantId ?? undefined;
   const product = await db.product.findUnique({
     where: { id: productId },
-    select: { slug: true, variants: { orderBy: { sort: "asc" }, take: 1, select: { sku: true } } },
+    select: {
+      slug: true,
+      // A motif's photo goes under its own šifra; an old, inactive šifra comes last.
+      variants: {
+        where: variantId ? { id: variantId } : undefined,
+        orderBy: [{ active: "desc" }, { sort: "asc" }],
+        take: 1,
+        select: { sku: true },
+      },
+    },
   });
   if (!product) throw new UserError("Artikal ne postoji.");
   const sku = product.variants[0]?.sku;

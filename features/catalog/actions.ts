@@ -168,7 +168,7 @@ export const requestProductPhoto = catalogAction(
 export const finishProductPhoto = productAction(
   z.object({ productId: id, key: z.string().max(80), variantId: id.optional() }),
   async ({ productId, key, variantId }, user) => {
-    const image = await finishUpload(key, "products", await photoName(productId));
+    const image = await finishUpload(key, "products", await photoName(productId, { variantId }));
     await addPhoto(productId, image, actorOf(user), variantId);
     return { data: undefined };
   },
@@ -177,7 +177,7 @@ export const finishProductPhoto = productAction(
 export const replaceProductPhoto = productAction(
   z.object({ id, productId: id, key: z.string().max(80) }),
   async ({ id, productId, key }, user) => {
-    const image = await finishUpload(key, "products", await photoName(productId));
+    const image = await finishUpload(key, "products", await photoName(productId, { photoId: id }));
     await replacePhoto(id, productId, image, actorOf(user));
     return { data: undefined };
   },
