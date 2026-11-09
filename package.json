@@ -22,6 +22,7 @@
     "db:import": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/db-import.ts",
     "user:create": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/user-create.ts",
     "postinstall": "prisma generate --no-hints || true",
+    "db:motifs": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/motifs-import.ts",
     "db:dev-publish": "tsx --env-file-if-exists=.env.development --import ./scripts/no-server-only.mjs scripts/dev-publish.ts"
   },
   "dependencies": {

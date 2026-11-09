@@ -13,6 +13,11 @@ datasource db {
 
 // ───────────────────────────── Catalogue ─────────────────────────────
 
+enum VariantKind {
+  SIZE
+  MOTIF
+}
+
 enum ProductStatus {
   DRAFT
   PUBLISHED
@@ -64,6 +69,8 @@ model Product {
   name          String
   description   String?
   status        ProductStatus @default(DRAFT)
+  /// What its šifre are to the customer: sizes, or motifs of a series that shares one šifra in the financial system
+  variantKind   VariantKind   @default(SIZE) @map("variant_kind")
   categoryId    Int?          @map("category_id")
   manufacturerId Int?         @map("manufacturer_id")
   lineId        Int?          @map("line_id")
@@ -111,9 +118,9 @@ model ProductVariant {
   id        Int      @id @default(autoincrement())
   productId Int      @map("product_id")
   sku       String   @unique
-  /// The item's id in the financial system, when it differs from the šifra
-  externalId String? @unique @map("external_id")
-  /// "120 ml", "50x70 cm"; empty when the item comes in one form only
+  /// The item's šifra in the financial system, when it differs from its own. A series' motifs all share the series' šifra.
+  externalId String? @map("external_id")
+  /// "120 ml", "50x70 cm", or a motif's name such as "8027"; empty when the item comes in one form only
   size      String?
   price     Decimal  @db.Decimal(12, 2)
   /// PDV included in price, in percent. 0 while the firm is outside the PDV system.
@@ -132,6 +139,7 @@ model ProductVariant {
   photos     ProductPhoto[]
 
   @@index([productId])
+  @@index([externalId])
   @@map("product_variant")
 }
 
@@ -175,6 +183,8 @@ enum StockReason {
   RETURN
   ADJUSTMENT
   SYNC
+  /// A motif sold in the store, where the till only knows the series' šifra
+  STORE_SALE
 }
 
 model StockMovement {

@@ -118,6 +118,7 @@ async function main() {
     async (tx) => {
       let created = 0;
       let updated = 0;
+      const skippedSeries: string[] = [];
       for (const [slug, variants] of products) {
         const info = classifyProduct(variants[0]!.product);
         const top = await tx.category.upsert({
@@ -172,6 +173,11 @@ async function main() {
         if (reclassify)
           await tx.product.updateMany({ where: { id: product.id, confirmed: false }, data: sorted });
         for (const [sort, r] of variants.entries()) {
+          // A series split into motifs keeps its šifra only as theirs in the financial system; its stock lives on them.
+          if (await tx.productVariant.findFirst({ where: { externalId: r.sku } })) {
+            skippedSeries.push(r.sku);
+            continue;
+          }
           const before = await tx.productVariant.findUnique({ where: { sku: r.sku } });
           const variant = await tx.productVariant.upsert({
             where: { sku: r.sku },
@@ -211,11 +217,13 @@ async function main() {
         summary: `Uvoz cjenovnika: ${created} novih, ${updated} ažuriranih`,
         changes: { created, updated },
       });
-      return { created, updated };
+      return { created, updated, skippedSeries };
     },
     { timeout: 300_000 },
   );
   console.log(`Gotovo: ${stats.created} novih, ${stats.updated} ažuriranih.`);
+  if (stats.skippedSeries.length > 0)
+    console.log(`Preskočene serije s motivima (zaliha se vodi po motivu): ${stats.skippedSeries.join(", ")}`);
 }
 
 main()

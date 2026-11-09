@@ -102,8 +102,15 @@ export async function topProducts(by: "sold" | "profit", take: number) {
         FROM order_line l JOIN "order" o ON o.id = l.order_id
        WHERE o.status NOT IN ('CANCELLED', 'RETURNED')
       UNION ALL
+      -- The till sells a series under one šifra that its motifs share, so such a sale counts for one of them.
       SELECT v.id, e.qty, e.revenue
-        FROM external_sale e JOIN product_variant v ON v.sku = e.sku
+        FROM external_sale e
+        JOIN LATERAL (
+          SELECT id FROM product_variant x
+           WHERE x.external_id = e.sku
+              OR (x.sku = e.sku AND NOT EXISTS (SELECT 1 FROM product_variant y WHERE y.external_id = e.sku))
+           ORDER BY x.id LIMIT 1
+        ) v ON true
     )
     SELECT v.product_id,
            sum(s.qty) AS sold,

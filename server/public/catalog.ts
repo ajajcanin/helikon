@@ -82,7 +82,7 @@ function searchPatterns(q: string) {
 }
 
 /**
- * Products with every word of the search somewhere in their names, colour number, category, line, manufacturer or šifre, in any order
+ * Products with every word of the search somewhere in their names, colour number, category, line, manufacturer, šifre or motifs, in any order
  * and with or without č, ć, ž, š, đ. Prisma can't express this, so it's a query of its own. Đ is also compared as "dj",
  * the usual way of typing it. Scanning is fine at catalogue size.
  */
@@ -90,7 +90,8 @@ async function productIdsMatching(q: string) {
   const rows = await db.$queryRaw<{ id: number }[]>`
     SELECT id FROM (
       SELECT p.id, translate(lower(concat_ws(' ', '', p.name, p.colour_name, p.colour_name_maker, p.colour_code, c.name, l.name, m.name,
-        (SELECT string_agg(v.sku, ' ') FROM product_variant v WHERE v.product_id = p.id AND v.active))),
+        (SELECT string_agg(concat_ws(' ', v.sku, CASE WHEN p.variant_kind = 'MOTIF' THEN v.size END), ' ')
+           FROM product_variant v WHERE v.product_id = p.id AND v.active))),
         'ČĆŽŠčćžš', 'cczscczs') AS text
       FROM product p
       LEFT JOIN category c ON c.id = p.category_id
@@ -261,6 +262,7 @@ export async function getPublishedProduct(slug: string) {
       id: true,
       slug: true,
       name: true,
+      variantKind: true,
       description: true,
       specs: true,
       finish: true,

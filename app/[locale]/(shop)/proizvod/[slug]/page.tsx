@@ -54,6 +54,7 @@ export default async function ProductPage({ params }: Props) {
   ];
   const name = displayName(product);
   const firstInStock = product.variants.find((v) => v.stockQty > 0) ?? product.variants[0];
+  const motifs = product.variantKind === "MOTIF";
   return (
     <div className="mx-auto max-w-[1200px] px-6 pt-10 pb-[88px]">
       <nav aria-label={t("nav")} className="mb-6 font-ui text-xs tracking-[0.08em] text-[var(--text-muted)]">
@@ -70,8 +71,9 @@ export default async function ProductPage({ params }: Props) {
       <SelectedVariantProvider initialId={firstInStock?.id}>
         <div className="grid items-start gap-10 md:grid-cols-2 md:gap-14">
           <div className="md:sticky md:top-32">
-            {product.photos.length > 0 ? (
+            {product.photos.length > 0 || motifs ? (
               <ProductGallery
+                motifs={motifs}
                 photos={product.photos.map((photo) => ({
                   ...photo,
                   alt:
@@ -109,12 +111,14 @@ export default async function ProductPage({ params }: Props) {
             )}
             <hr className="hk-rule my-7" />
             <AddToCart
+              motifs={motifs}
               variants={product.variants.map((v) => ({
                 id: v.id,
                 sku: v.sku,
                 size: v.size,
                 stockQty: v.stockQty,
                 priceLabel: km(v.price),
+                photo: motifs ? product.photos.find((p) => p.variantId === v.id) : undefined,
               }))}
             />
             {showColours && product.line && (

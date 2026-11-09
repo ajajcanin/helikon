@@ -69,6 +69,7 @@ or article shows as a broken image on the dev site.
 
 - Move the data the client confirmed on dev to production, because the two databases are separate. Do it once:
   `pg_dump` from dev's direct URL and `pg_restore` into production, then remove test orders.
+  This also carries the motifs of rice papers and stencils, so split any new series with `pnpm db:motifs` on dev first.
 - Legal pages, a verified sending domain in Resend for order e-mails, Turnstile keys, real delivery prices, photos, and the
   PDV answer from the accountant.
 - First admin on production: `pnpm user:create` with production's `DATABASE_URL`, unless the copied data has one.

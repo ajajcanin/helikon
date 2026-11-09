@@ -8,6 +8,7 @@ import { Caption } from "@/components/atoms/Caption";
 import { ProductImage } from "@/components/atoms/ProductImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
 import { mediaUrl } from "@/lib/media";
+import { matchMotifFiles } from "@/lib/motif-files";
 import { uploadImage } from "@/lib/upload-image";
 import {
   confirmReview,
@@ -114,12 +115,15 @@ function PhotoSlot({
   label,
   photo,
   wide,
+  compact,
 }: {
   productId: number;
   variantId?: number;
   label?: string;
   photo?: ReviewRow["photos"][number];
   wide?: boolean;
+  /** Smaller, for a series with many motifs. */
+  compact?: boolean;
 }) {
   const t = useTranslations("review");
   const c = useTranslations("common");
@@ -160,7 +164,9 @@ function PhotoSlot({
   return (
     <div className={`flex w-full flex-col gap-2 ${wide ? "" : "md:w-56 md:shrink-0"}`}>
       {label && <span className="font-ui text-xs text-[var(--text-secondary)]">{label}</span>}
-      <div className="flex h-56 items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)]">
+      <div
+        className={`flex items-center justify-center border border-[var(--border-subtle)] bg-[var(--product-tile)] ${compact ? "h-40" : "h-56"}`}
+      >
         {photo ? (
           <a
             href={mediaUrl(photo.storageKey, photo.width, photo.width)}
@@ -207,9 +213,92 @@ function PhotoSlot({
   );
 }
 
-/** One photo per product, or one per size when it comes in several. */
+/** Adds or replaces many motifs' photos at once, each going to the motif whose šifra starts its file name. */
+function MotifUpload({ row }: { row: ReviewRow }) {
+  const t = useTranslations("review");
+  const router = useRouter();
+  const input = useRef<HTMLInputElement>(null);
+  const [pending, start] = useTransition();
+  const [result, setResult] = useState<string | null>(null);
+
+  function upload(files: FileList | null) {
+    if (!files?.length) return;
+    setResult(null);
+    start(async () => {
+      const { matched, unmatched } = matchMotifFiles(
+        Array.from(files),
+        row.variants.map((v) => v.sku),
+      );
+      let done = 0;
+      const failed = unmatched.map((f) => f.name);
+      for (const { file, sku } of matched) {
+        const variant = row.variants.find((v) => v.sku === sku)!;
+        const photo = row.photos.find((p) => p.variantId === variant.id);
+        const res = await uploadImage(file, {
+          request: requestProductPhoto,
+          finish: (key) =>
+            photo
+              ? replaceProductPhoto({ id: photo.id, productId: row.id, key })
+              : finishProductPhoto({ productId: row.id, key, variantId: variant.id }),
+        });
+        if ("error" in res) failed.push(file.name);
+        else done++;
+      }
+      if (input.current) input.current.value = "";
+      setResult(
+        failed.length > 0
+          ? t("motifUploadFailed", { done, names: failed.join(", ") })
+          : t("motifUploaded", { done }),
+      );
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="mb-3">
+      <input
+        ref={input}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        hidden
+        aria-label={t("motifUpload")}
+        onChange={(e) => upload(e.target.files)}
+      />
+      <Button disabled={pending} onClick={() => input.current?.click()}>
+        {pending ? t("photoUploading") : t("motifUpload")}
+      </Button>
+      <div aria-live="polite" className="mt-2">
+        {result && <Caption>{result}</Caption>}
+      </div>
+    </div>
+  );
+}
+
+/** One photo per product, or one per size or motif when it comes in several. */
 export function ReviewPhoto({ row }: { row: ReviewRow }) {
   const sizes = row.variants.filter((v) => v.size);
+  if (row.variantKind === "MOTIF")
+    return (
+      <div className="w-full">
+        <MotifUpload row={row} />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          {row.variants
+            .filter((v) => v.active)
+            .map((v) => (
+              <PhotoSlot
+                key={v.id}
+                productId={row.id}
+                variantId={v.id}
+                label={`${v.sku} · ${v.size ?? ""}`}
+                photo={row.photos.find((p) => p.variantId === v.id)}
+                wide
+                compact
+              />
+            ))}
+        </div>
+      </div>
+    );
   if (sizes.length < 2) return <PhotoSlot productId={row.id} photo={row.photos[0]} />;
   return (
     <div className="w-full md:w-[460px] md:shrink-0">
@@ -468,7 +557,7 @@ export function ReviewCard({
               <span className="font-ui text-sm">{v.sku}</span>
             </div>
             <TextEdit
-              label={t("fields.size")}
+              label={row.variantKind === "MOTIF" ? t("fields.motif") : t("fields.size")}
               value={v.size ?? ""}
               save={(value) =>
                 run(`size-${v.id}`, () => saveVariantField({ id: v.id, field: "size", value }))

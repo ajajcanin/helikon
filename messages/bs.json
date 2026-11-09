@@ -75,6 +75,9 @@
     "photoReplace": "Zamijeni sliku",
     "photoRemove": "Ukloni sliku",
     "photoUploading": "Šalje se…",
+    "motifUpload": "Dodaj slike motiva (više odjednom)",
+    "motifUploaded": "Dodano slika: {done}.",
+    "motifUploadFailed": "Dodano slika: {done}. Nisu dodane (naziv ne odgovara šifri motiva ili greška): {names}",
     "leaveTitle": "Imate nesačuvane izmjene",
     "leaveText": "Ako odustanete, izmjene se neće sačuvati.",
     "leaveStay": "Ostani",
@@ -102,6 +105,7 @@
       "specs": "Specifikacija (svaki red: Naziv: vrijednost)",
       "size": "Veličina",
       "price": "Cijena (KM)",
+      "motif": "Motiv",
       "stock": "Zaliha",
       "sku": "Šifra",
       "manufacturerId": "Proizvođač",
@@ -170,6 +174,8 @@
     "newStock": "Novo stanje",
     "note": "Razlog (npr. popis)",
     "update": "Ažuriraj",
+    "storeSale": "Prodano u radnji",
+    "sold": "Prodano: web {web} · radnja {store}",
     "sku": "Šifra",
     "size": "Veličina"
   },
@@ -405,6 +411,8 @@
     "outOfStock": "Trenutno nije na stanju",
     "sizes": "{count} veličine",
     "swatchNote": "Prikaz je približan. Boja se najbolje vidi uživo.",
+    "motif": "Motiv",
+    "motifNoPhoto": "Za ovaj motiv još nema slike.",
     "size": "Veličina",
     "quantity": "Količina",
     "decrease": "Smanji količinu",
@@ -564,7 +572,8 @@
   "photos": {
     "title": "Slike artikla",
     "hint": "JPG, PNG ili WEBP, do 25 MB.",
-    "sizeHint": "Svaka veličina ima jednu sliku. Veličina bez slike prikazuje sliku druge veličine."
+    "sizeHint": "Svaka veličina ima jednu sliku. Veličina bez slike prikazuje sliku druge veličine.",
+    "motifHint": "Svaki motiv ima svoju sliku. Više slika odjednom: nazovite ih po šifri motiva, npr. 2801.jpg."
   },
   "editor": {
     "bold": "Podebljano",

@@ -126,3 +126,43 @@ export async function adjustStock(variantId: number, newQty: number, note: strin
     });
   });
 }
+
+/**
+ * One motif sold in the store. The till only knows the series' šifra, so staff record which motif went, and its
+ * stock on the web follows.
+ */
+export async function recordStoreSale(variantId: number, actor: AuditActor) {
+  await db.$transaction(async (tx) => {
+    const locked = await tx.$queryRaw<{ stock_qty: number; sku: string }[]>`
+      SELECT stock_qty, sku FROM product_variant WHERE id = ${variantId} FOR UPDATE`;
+    const current = locked[0];
+    if (!current) throw new UserError("Šifra ne postoji.");
+    if (current.stock_qty < 1) throw new UserError("Zaliha je već 0.");
+    await tx.productVariant.update({ where: { id: variantId }, data: { stockQty: current.stock_qty - 1 } });
+    await tx.stockMovement.create({ data: { variantId, delta: -1, reason: "STORE_SALE" } });
+    await audit(tx, actor, {
+      action: "update",
+      table: "product_variant",
+      recordId: current.sku,
+      summary: `Prodano u radnji, šifra ${current.sku}`,
+      changes: { stockQty: [current.stock_qty, current.stock_qty - 1] },
+    });
+  });
+}
+
+/** How many of each of a product's šifre went: on the web (less cancelled orders) and in the store. */
+export async function soldCounts(productId: number) {
+  const rows = await db.stockMovement.groupBy({
+    by: ["variantId", "reason"],
+    where: { variant: { productId }, reason: { in: ["ORDER", "ORDER_CANCELLED", "STORE_SALE"] } },
+    _sum: { delta: true },
+  });
+  const counts = new Map<number, { web: number; store: number }>();
+  for (const r of rows) {
+    const count = counts.get(r.variantId) ?? { web: 0, store: 0 };
+    if (r.reason === "STORE_SALE") count.store -= r._sum.delta ?? 0;
+    else count.web -= r._sum.delta ?? 0;
+    counts.set(r.variantId, count);
+  }
+  return Object.fromEntries(counts);
+}
