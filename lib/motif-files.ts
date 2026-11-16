@@ -18,7 +18,10 @@ export function matchMotifFiles<F extends { name: string }>(files: F[], skus: st
   return { matched, unmatched };
 }
 
-/** A motif's name from the maker's description: "RICE PAPER 8027" → "8027", "Rice paper Sarajevo II" → "Sarajevo II". */
+/**
+ * A motif's name from the maker's description: its number at the end ("RICE PAPER 8027" → "8027",
+ * "WALL DECOR SERIES 50x70 cm WALL-005" → "005"), or the words after "Rice paper" ("Sarajevo II").
+ */
 export function motifName(description: string) {
   const text = description.trim();
   const number = text.match(/(\d+)\s*$/);

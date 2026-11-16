@@ -24,5 +24,8 @@ describe("motifName", () => {
     expect(motifName("GOLD RICE PAPER WHITE-GOLD 72002")).toBe("72002");
     expect(motifName("Rice paper Sarajevo Vintage II")).toBe("Sarajevo Vintage II");
     expect(motifName("Rice Paper Gradovi")).toBe("Gradovi");
+    expect(motifName("STENCIL DANTEL SERIES X-LARGE  901")).toBe("901");
+    expect(motifName("STENCIL SQUARE SERIES 25x25 cm 15705")).toBe("15705");
+    expect(motifName("WALL DECOR SERIES 50x70 cm WALL-005")).toBe("005");
   });
 });
