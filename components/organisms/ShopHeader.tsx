@@ -32,7 +32,7 @@ export function ShopHeader({ categories, hasJournal, hasAbout }: Props) {
   ];
   const hideMega = closedFor === pathname;
   return (
-    <header className="sticky top-0 z-50 border-b border-[var(--border-subtle)] bg-[var(--bg-well)]">
+    <header className="sticky top-[var(--admin-bar,0px)] z-50 border-b border-[var(--border-subtle)] bg-[var(--bg-well)]">
       <div className="mx-auto flex h-[68px] max-w-[1200px] items-center gap-6 px-6">
         <button
           type="button"

@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { Icon, type IconName } from "@/components/atoms/Icon";
 import { Link, usePathname } from "@/i18n/navigation";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
+import { forgetStaff, markStaff } from "@/lib/staff-marker";
 import { setTheme } from "../actions";
 
 type Item = { href: string; label: string; icon: IconName; adminOnly?: boolean };
@@ -72,7 +73,11 @@ export function AdminShell({
     router.refresh();
   }
 
+  // The shop shows a way back to the admin in this browser, until signing out.
+  useEffect(markStaff, []);
+
   async function logout() {
+    forgetStaff();
     await authClient.signOut();
     router.replace("/admin/prijava");
     router.refresh();
