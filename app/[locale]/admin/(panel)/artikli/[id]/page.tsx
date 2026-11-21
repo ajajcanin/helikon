@@ -30,16 +30,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const motifs = found.variantKind === "MOTIF";
   // A series split into motifs keeps its old šifra for its history; staff work with the motifs, which carry the series' šifra.
   const row = motifs ? { ...found, variants: found.variants.filter((variant) => variant.externalId) } : found;
-  // Colour fields show for coloured goods: this product has a colour, or others in its category do.
-  const colours =
-    Boolean(row.colourName || row.colourFamily) ||
-    (row.categoryId !== null &&
-      (await db.product.count({
-        where: {
-          categoryId: row.categoryId,
-          OR: [{ colourName: { not: null } }, { colourFamily: { not: null } }],
-        },
-      })) > 0);
+  // Colour fields show for a product that has a colour; a glue or varnish beside coloured foils doesn't need them.
+  const colours = Boolean(row.colourName || row.colourFamily);
   return (
     <>
       <Link

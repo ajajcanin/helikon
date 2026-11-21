@@ -2,13 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { FIELD_CLASS } from "@/components/atoms/Field";
 import { FilterForm } from "@/components/molecules/FilterForm";
 import { ProductEditCard } from "@/features/catalog/components/ProductReview";
-import {
-  colourCategoryIds,
-  listMissing,
-  MISSING_TABS,
-  type MissingTab,
-  missingCounts,
-} from "@/features/catalog/missing";
+import { listMissing, MISSING_TABS, type MissingTab, missingCounts } from "@/features/catalog/missing";
 import { reviewOptions } from "@/features/catalog/review";
 import { Link } from "@/i18n/navigation";
 
@@ -28,11 +22,10 @@ export default async function MissingPage({
   const q = single(params.q);
   const category = single(params.kategorija);
   const page = Math.max(1, Number(single(params.strana)) || 1);
-  const [data, counts, options, coloured] = await Promise.all([
+  const [data, counts, options] = await Promise.all([
     listMissing({ tab, q, categoryId: Number(category) || undefined, page }),
     missingCounts(),
     reviewOptions(),
-    colourCategoryIds(),
   ]);
   const link = (to: { tab?: MissingTab; strana?: number }) => ({
     pathname: "/admin/dopuna",
@@ -92,7 +85,7 @@ export default async function MissingPage({
               key={row.id}
               row={row}
               options={options}
-              colours={Boolean(row.colourName || row.colourFamily) || coloured.includes(row.categoryId ?? -1)}
+              colours={Boolean(row.colourName || row.colourFamily)}
               openLink
             />
           ))}

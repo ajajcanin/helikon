@@ -306,6 +306,7 @@
       "proizvodjac": "Bez proizvođača",
       "linija": "Bez linije",
       "boja": "Bez porodice boje",
+      "nijansa": "Bez broja nijanse",
       "motivi": "Motivi bez naziva",
       "sakriveno": "Sakriveno"
     },
@@ -316,6 +317,7 @@
       "proizvodjac": "Objavljeni artikli bez proizvođača.",
       "linija": "Artikli proizvođača koji ima linije, a nisu ni u jednoj. Neki artikli ne pripadaju liniji, pa ih ovdje možete i ostaviti.",
       "boja": "Boje bez porodice boje, pa ih filter po boji ne prikazuje.",
+      "nijansa": "Artikli koji imaju boju, a nemaju broj nijanse. Kupci često traže po broju nijanse.",
       "motivi": "Serije u kojima neki motiv nema naziv, pa kupac vidi samo šifru. Naziv se upisuje na stranici artikla, u redu motiva.",
       "sakriveno": "Arhivirani artikli i šifre sakrivene u prodavnici, da provjerite da ništa nije sakriveno greškom."
     },

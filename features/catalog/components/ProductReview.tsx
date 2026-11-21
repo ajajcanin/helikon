@@ -337,7 +337,7 @@ export function ReviewCard({
   options: Options;
   /** On the product's own page: only the fields, kept until Save, without confirming, its note and its photos. */
   editOnly?: boolean;
-  /** Colour fields only matter for paints and other coloured goods; elsewhere they stay folded away. */
+  /** Colour fields only matter for a product with a colour; otherwise they stay folded away behind a link. */
   colours?: boolean;
   onCancel?: () => void;
   /** Links to the product's own page, for its photos and stock. */

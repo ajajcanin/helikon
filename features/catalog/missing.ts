@@ -12,6 +12,7 @@ export const MISSING_TABS = [
   "proizvodjac",
   "linija",
   "boja",
+  "nijansa",
   "motivi",
   "sakriveno",
 ] as const;
@@ -52,6 +53,9 @@ function missingWhere(tab: MissingTab): Prisma.ProductWhereInput {
     case "boja":
       // A colour without a family is missing from the shop's colour filter.
       return { ...published, colourName: { not: null }, colourFamily: null };
+    case "nijansa":
+      // Customers search by shade number, so a colour without one is hard to find.
+      return { ...published, colourName: { not: null }, OR: [{ colourCode: null }, { colourCode: "" }] };
     case "motivi":
       // A motif without a name shows only its šifra to customers.
       return {
@@ -74,15 +78,6 @@ function missingWhere(tab: MissingTab): Prisma.ProductWhereInput {
 export async function missingCounts() {
   const counts = await Promise.all(MISSING_TABS.map((tab) => db.product.count({ where: missingWhere(tab) })));
   return Object.fromEntries(MISSING_TABS.map((tab, i) => [tab, counts[i]!])) as Record<MissingTab, number>;
-}
-
-/** Categories whose products have colours, so their colour fields show while editing. */
-export async function colourCategoryIds() {
-  const rows = await db.product.groupBy({
-    by: ["categoryId"],
-    where: { OR: [{ colourName: { not: null } }, { colourFamily: { not: null } }] },
-  });
-  return rows.flatMap((r) => (r.categoryId === null ? [] : [r.categoryId]));
 }
 
 export async function listMissing({
