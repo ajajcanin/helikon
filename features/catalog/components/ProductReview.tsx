@@ -23,6 +23,7 @@ import {
 } from "../actions";
 import { COLOUR_FAMILIES } from "../classify";
 import type { ReviewField, ReviewRow } from "../review";
+import { ShopLink } from "./ShopLink";
 
 type Options = {
   categories: { id: number; label: string; isTop: boolean; selectable: boolean }[];
@@ -330,15 +331,12 @@ export function ReviewCard({
   options,
   editOnly,
   onCancel,
-  colours = true,
   openLink,
 }: {
   row: ReviewRow;
   options: Options;
   /** On the product's own page: only the fields, kept until Save, without confirming, its note and its photos. */
   editOnly?: boolean;
-  /** Colour fields only matter for a product with a colour; otherwise they stay folded away behind a link. */
-  colours?: boolean;
   onCancel?: () => void;
   /** Links to the product's own page, for its photos and stock. */
   openLink?: boolean;
@@ -348,7 +346,6 @@ export function ReviewCard({
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirmed, setConfirmed] = useState(row.confirmed);
-  const [showColours, setShowColours] = useState(colours);
   const [manufacturerId, setManufacturerId] = useState(String(row.manufacturerId ?? ""));
   const [lineId, setLineId] = useState(String(row.lineId ?? ""));
   const lines = options.manufacturers.find((m) => String(m.id) === manufacturerId)?.lines ?? [];
@@ -459,6 +456,7 @@ export function ReviewCard({
               {t("openProduct")}
             </Link>
           )}
+          {openLink && <ShopLink slug={row.slug} status={row.status} className="ml-3" />}
         </h2>
         {!editOnly && (
           <div className="flex items-center gap-3 font-ui text-xs">
@@ -532,54 +530,37 @@ export function ReviewCard({
             }}
             empty={t("none")}
           />
-          {showColours && (
-            <>
-              <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
-              <TextEdit
-                label={f("colourNameMaker")}
-                value={row.colourNameMaker ?? ""}
-                save={save("colourNameMaker")}
-              />
-            </>
-          )}
+          <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
+          <TextEdit
+            label={f("colourNameMaker")}
+            value={row.colourNameMaker ?? ""}
+            save={save("colourNameMaker")}
+          />
           <TextEdit
             // Without a colour, the number is the maker's article number, as the shop calls it too.
             label={row.colourName ? f("colourCode") : t("makerCode")}
             value={row.colourCode ?? ""}
             save={save("colourCode")}
           />
-          {showColours && (
-            <>
-              <SelectEdit
-                label={f("colourFamily")}
-                value={row.colourFamily ?? ""}
-                options={COLOUR_FAMILIES}
-                save={save("colourFamily")}
-                empty={t("none")}
-              />
-              <SelectEdit
-                label={f("medium")}
-                value={row.medium ?? ""}
-                options={[
-                  ["akril", t("mediumAkril")],
-                  ["ulje", t("mediumUlje")],
-                ]}
-                save={save("medium")}
-                empty={t("none")}
-              />
-              <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
-            </>
-          )}
+          <SelectEdit
+            label={f("colourFamily")}
+            value={row.colourFamily ?? ""}
+            options={COLOUR_FAMILIES}
+            save={save("colourFamily")}
+            empty={t("none")}
+          />
+          <SelectEdit
+            label={f("medium")}
+            value={row.medium ?? ""}
+            options={[
+              ["akril", t("mediumAkril")],
+              ["ulje", t("mediumUlje")],
+            ]}
+            save={save("medium")}
+            empty={t("none")}
+          />
+          <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
         </div>
-        {!showColours && (
-          <button
-            type="button"
-            onClick={() => setShowColours(true)}
-            className="mt-2 font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline"
-          >
-            {t("showColours")}
-          </button>
-        )}
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -681,12 +662,10 @@ function LeaveDialog({ onStay, onLeave }: { onStay: () => void; onLeave: () => v
 export function ProductEditCard({
   row,
   options,
-  colours,
   openLink,
 }: {
   row: ReviewRow;
   options: Options;
-  colours?: boolean;
   openLink?: boolean;
 }) {
   const [version, setVersion] = useState(0);
@@ -696,7 +675,6 @@ export function ProductEditCard({
       row={row}
       options={options}
       editOnly
-      colours={colours}
       openLink={openLink}
       onCancel={() => setVersion(version + 1)}
     />

@@ -81,13 +81,7 @@ export default async function MissingPage({
         // Keyed so changing tab, filter or page starts each card from what is saved.
         <ul key={JSON.stringify(params)} className="flex flex-col gap-4">
           {data.rows.map((row) => (
-            <ProductEditCard
-              key={row.id}
-              row={row}
-              options={options}
-              colours={Boolean(row.colourName || row.colourFamily)}
-              openLink
-            />
+            <ProductEditCard key={row.id} row={row} options={options} openLink />
           ))}
         </ul>
       )}

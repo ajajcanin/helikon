@@ -116,7 +116,6 @@
     "mediumAkril": "Akril",
     "mediumUlje": "Ulje",
     "makerCode": "Šifra proizvođača",
-    "showColours": "Prikaži polja za boju",
     "openProduct": "Otvori artikal"
   },
   "common": {
@@ -180,6 +179,8 @@
     "update": "Ažuriraj",
     "storeSale": "Prodano u radnji",
     "hide": "Sakrij u prodavnici",
+    "showOnWeb": "Prikaži na webu ↗",
+    "notOnWeb": "Nije objavljen na webu",
     "show": "Prikaži u prodavnici",
     "hidden": "Sakrivena u prodavnici",
     "sold": "Prodano: web {web} · radnja {store}",

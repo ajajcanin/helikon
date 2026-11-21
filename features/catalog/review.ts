@@ -223,6 +223,8 @@ export function toReviewRow(r: Prisma.ProductGetPayload<{ include: typeof review
   return {
     id: r.id,
     name: r.name,
+    slug: r.slug,
+    status: r.status,
     categoryId: r.categoryId,
     manufacturerId: r.manufacturerId,
     lineId: r.lineId,
