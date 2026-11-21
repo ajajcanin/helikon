@@ -208,7 +208,7 @@ export type ReviewFilters = {
   page?: number;
 };
 
-const reviewInclude = {
+export const reviewInclude = {
   photos: {
     orderBy: [{ sort: "asc" }, { id: "asc" }],
     select: { id: true, storageKey: true, width: true, height: true, variantId: true },
@@ -219,7 +219,7 @@ const reviewInclude = {
   },
 } satisfies Prisma.ProductInclude;
 
-function toReviewRow(r: Prisma.ProductGetPayload<{ include: typeof reviewInclude }>) {
+export function toReviewRow(r: Prisma.ProductGetPayload<{ include: typeof reviewInclude }>) {
   return {
     id: r.id,
     name: r.name,

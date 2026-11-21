@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { MotifTable } from "@/features/catalog/components/MotifTable";
 import { ProductControls } from "@/features/catalog/components/ProductControls";
-import { MotifUpload, ProductEditCard, ReviewPhoto } from "@/features/catalog/components/ProductReview";
+import { MotifUpload, ProductEditCard } from "@/features/catalog/components/ProductReview";
+import { VariantTable } from "@/features/catalog/components/VariantTable";
 import { soldCounts } from "@/features/catalog/products";
 import { getReviewRow, reviewOptions } from "@/features/catalog/review";
 import { Link } from "@/i18n/navigation";
@@ -11,19 +11,35 @@ import { db } from "@/server/db";
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id <= 0) notFound();
-  const [found, options, product, c, t, sold, m] = await Promise.all([
+  const [found, options, product, c, t, sold, v, sizes] = await Promise.all([
     getReviewRow(id),
     reviewOptions(),
     db.product.findUnique({ where: { id }, select: { status: true } }),
     getTranslations("common"),
     getTranslations("photos"),
     soldCounts(id),
-    getTranslations("motifs"),
+    getTranslations("variants"),
+    db.productVariant.findMany({
+      where: { size: { not: null }, product: { variantKind: "SIZE" } },
+      distinct: ["size"],
+      orderBy: { size: "asc" },
+      select: { size: true },
+    }),
   ]);
   if (!found || !product) notFound();
   const motifs = found.variantKind === "MOTIF";
   // A series split into motifs keeps its old šifra for its history; staff work with the motifs, which carry the series' šifra.
-  const row = motifs ? { ...found, variants: found.variants.filter((v) => v.externalId) } : found;
+  const row = motifs ? { ...found, variants: found.variants.filter((variant) => variant.externalId) } : found;
+  // Colour fields show for coloured goods: this product has a colour, or others in its category do.
+  const colours =
+    Boolean(row.colourName || row.colourFamily) ||
+    (row.categoryId !== null &&
+      (await db.product.count({
+        where: {
+          categoryId: row.categoryId,
+          OR: [{ colourName: { not: null } }, { colourFamily: { not: null } }],
+        },
+      })) > 0);
   return (
     <>
       <Link
@@ -32,31 +48,20 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
       >
         {c("back")}
       </Link>
-      {motifs ? (
-        // A series' motifs, each in one row: photo, šifra, name, price and stock together.
-        <section className="mb-4 border border-[var(--border-subtle)] p-4">
-          <h2 className="mb-1 font-display text-base tracking-[0.04em]">
-            {m("title", { count: row.variants.length })}
-          </h2>
-          <p className="mb-3 font-ui text-xs text-[var(--text-muted)]">
-            {t("hint")} {t("motifHint")}
-          </p>
-          <MotifUpload row={row} />
-          <MotifTable row={row} sold={sold} />
-        </section>
-      ) : (
-        <section className="mb-4 border border-[var(--border-subtle)] p-4">
-          <h2 className="mb-1 font-display text-base tracking-[0.04em]">{t("title")}</h2>
-          <p className="mb-3 font-ui text-xs text-[var(--text-muted)]">
-            {t("hint")}
-            {row.variants.filter((v) => v.size).length > 1 && ` ${t("sizeHint")}`}
-          </p>
-          <ReviewPhoto row={row} />
-        </section>
-      )}
-      <ProductControls id={id} status={product.status} variants={motifs ? [] : row.variants} />
+      <ProductControls id={id} status={product.status} />
+      {/* One row per šifra, the same for every product: photo, size or motif, price, stock and whether it's in the shop. */}
+      <section className="mb-4 border border-[var(--border-subtle)] p-4">
+        <h2 className="mb-1 font-display text-base tracking-[0.04em]">
+          {v(motifs ? "titleMotifs" : "title", { count: row.variants.length })}
+        </h2>
+        <p className="mb-3 font-ui text-xs text-[var(--text-muted)]">
+          {t("hint")} {motifs ? t("motifHint") : v("hint")}
+        </p>
+        {motifs && <MotifUpload row={row} />}
+        <VariantTable row={row} sold={sold} sizes={sizes.flatMap((s) => (s.size ? [s.size] : []))} />
+      </section>
       <ul>
-        <ProductEditCard row={row} options={options} />
+        <ProductEditCard row={row} options={options} colours={colours} />
       </ul>
     </>
   );

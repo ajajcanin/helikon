@@ -103,14 +103,36 @@ export async function setProductStatus(id: number, status: ProductStatus, actor:
 }
 
 /** Sets stock after a count. The row is locked, so a sale at the same moment isn't lost, and the movement explains it. */
-export async function adjustStock(variantId: number, newQty: number, note: string, actor: AuditActor) {
-  if (!Number.isInteger(newQty) || newQty < 0)
-    throw new UserError("Zaliha mora biti cijeli broj, 0 ili više.");
+export const adjustStock = (variantId: number, newQty: number, note: string, actor: AuditActor) =>
+  applyStockChange(variantId, { mode: "set", qty: newQty }, note, actor);
+
+/** Goods received or returned add, written-off goods subtract, a count sets the stock outright. */
+export type StockChange = { mode: "add" | "remove" | "set"; qty: number };
+
+/**
+ * Changes one šifra's stock. The new amount is worked out under the row's lock, so a sale at the same moment
+ * isn't lost when goods are added.
+ */
+export async function applyStockChange(
+  variantId: number,
+  change: StockChange,
+  note: string,
+  actor: AuditActor,
+) {
+  if (!Number.isInteger(change.qty) || change.qty < 0)
+    throw new UserError("Količina mora biti cijeli broj, 0 ili više.");
   await db.$transaction(async (tx) => {
     const locked = await tx.$queryRaw<{ stock_qty: number; sku: string }[]>`
       SELECT stock_qty, sku FROM product_variant WHERE id = ${variantId} FOR UPDATE`;
     const current = locked[0];
     if (!current) throw new UserError("Šifra ne postoji.");
+    const newQty =
+      change.mode === "set"
+        ? change.qty
+        : change.mode === "add"
+          ? current.stock_qty + change.qty
+          : current.stock_qty - change.qty;
+    if (newQty < 0) throw new UserError(`Na stanju je samo ${current.stock_qty}.`);
     const delta = newQty - current.stock_qty;
     if (delta === 0) return;
     await tx.productVariant.update({ where: { id: variantId }, data: { stockQty: newQty } });

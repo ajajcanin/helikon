@@ -44,7 +44,8 @@ export default async function ProductPage({ params }: Props) {
   const rows: [string, string | null | undefined][] = [
     [t("maker"), product.manufacturer?.name],
     [t("line"), product.line?.name],
-    [t("shade"), product.colourCode],
+    // Without a colour, the number is the maker's article number, not a shade.
+    [product.colourName ? t("shade") : t("makerCode"), product.colourCode],
     [t("makerColour"), product.colourNameMaker],
     [t("finish"), product.finish],
     // The finish is already above when a line also lists it.

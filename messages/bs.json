@@ -42,6 +42,7 @@
     "navProducts": "Artikli",
     "navCategories": "Kategorije",
     "navReview": "Potvrda artikala",
+    "navMissing": "Dopuna artikala",
     "navUsers": "Korisnici",
     "navSettings": "Postavke",
     "navHistory": "Historija promjena",
@@ -113,7 +114,10 @@
     },
     "none": "-",
     "mediumAkril": "Akril",
-    "mediumUlje": "Ulje"
+    "mediumUlje": "Ulje",
+    "makerCode": "Šifra proizvođača",
+    "showColours": "Prikaži polja za boju",
+    "openProduct": "Otvori artikal"
   },
   "common": {
     "save": "Sačuvaj",
@@ -264,15 +268,64 @@
     "openingHours": "Radno vrijeme (svaki red zasebno)",
     "mapQuery": "Lokacija na Google mapi (naziv i adresa)"
   },
-  "motifs": {
-    "title": "Motivi ({count})",
+  "variants": {
+    "title": "Šifre ({count})",
+    "titleMotifs": "Motivi ({count})",
+    "hint": "Svaka šifra ima svoju sliku, veličinu, cijenu i zalihu.",
     "sku": "Šifra",
-    "name": "Motiv",
+    "size": "Veličina",
+    "motif": "Motiv",
     "price": "Cijena (KM)",
-    "stock": "Zaliha",
-    "note": "Razlog promjene zalihe",
+    "change": "Zaliha ({stock}): promjena",
+    "noChange": "Bez promjene",
+    "reasons": {
+      "receive": "Prijem robe",
+      "count": "Popis",
+      "damaged": "Oštećeno",
+      "returned": "Povrat kupca",
+      "other": "Ostalo"
+    },
+    "qty": {
+      "none": "Količina",
+      "add": "Koliko dodati",
+      "remove": "Koliko oduzeti",
+      "set": "Tačno stanje"
+    },
+    "otherNote": "Opis promjene",
+    "inStock": "Na stanju: {stock}",
     "save": "Sačuvaj",
     "saved": "Sačuvano."
+  },
+  "missing": {
+    "title": "Dopuna artikala",
+    "intro": "Artikli kojima nešto nedostaje. Kad artikal dopunite i sačuvate, nestaje sa te kartice.",
+    "tabs": {
+      "opis": "Bez opisa",
+      "specifikacija": "Bez specifikacije",
+      "slika": "Bez slike",
+      "proizvodjac": "Bez proizvođača",
+      "linija": "Bez linije",
+      "boja": "Bez porodice boje",
+      "motivi": "Motivi bez naziva",
+      "sakriveno": "Sakriveno"
+    },
+    "hints": {
+      "opis": "Objavljeni artikli bez opisa.",
+      "specifikacija": "Objavljeni artikli bez specifikacije (svaki red: Naziv: vrijednost).",
+      "slika": "Objavljeni artikli bez slike, i serije čiji neki motiv nema sliku. Slike se dodaju na stranici artikla.",
+      "proizvodjac": "Objavljeni artikli bez proizvođača.",
+      "linija": "Artikli proizvođača koji ima linije, a nisu ni u jednoj. Neki artikli ne pripadaju liniji, pa ih ovdje možete i ostaviti.",
+      "boja": "Boje bez porodice boje, pa ih filter po boji ne prikazuje.",
+      "motivi": "Serije u kojima neki motiv nema naziv, pa kupac vidi samo šifru. Naziv se upisuje na stranici artikla, u redu motiva.",
+      "sakriveno": "Arhivirani artikli i šifre sakrivene u prodavnici, da provjerite da ništa nije sakriveno greškom."
+    },
+    "search": "Naziv ili šifra",
+    "category": "Kategorija",
+    "allCategories": "Sve kategorije",
+    "empty": "Ovdje ništa ne nedostaje.",
+    "previous": "Prethodna",
+    "next": "Sljedeća",
+    "page": "Strana {page} od {pages}"
   },
   "history": {
     "title": "Historija promjena",
@@ -441,6 +494,7 @@
     "maker": "Proizvođač",
     "makerColour": "Naziv boje proizvođača",
     "shade": "Broj nijanse",
+    "makerCode": "Šifra proizvođača",
     "finish": "Izgled",
     "related": "Iz iste police",
     "lineColours": "{line}: {count} boja",

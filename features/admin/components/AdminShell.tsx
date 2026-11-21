@@ -43,7 +43,7 @@ export function AdminShell({
         { href: "/admin/artikli", label: t("navProducts"), icon: "products" },
         { href: "/admin/kategorije", label: t("navCategories"), icon: "categories" },
         { href: "/admin/proizvodjaci", label: t("navManufacturers"), icon: "manufacturers" },
-        { href: "/admin/potvrda", label: t("navReview"), icon: "review" },
+        { href: "/admin/dopuna", label: t("navMissing"), icon: "review" },
       ],
     },
     {

@@ -7,6 +7,7 @@ import { Button } from "@/components/atoms/Button";
 import { Caption } from "@/components/atoms/Caption";
 import { ProductImage } from "@/components/atoms/ProductImage";
 import { SubmitButton } from "@/components/atoms/SubmitButton";
+import { Link } from "@/i18n/navigation";
 import { mediaUrl } from "@/lib/media";
 import { matchMotifFiles } from "@/lib/motif-files";
 import { uploadImage } from "@/lib/upload-image";
@@ -329,18 +330,25 @@ export function ReviewCard({
   options,
   editOnly,
   onCancel,
+  colours = true,
+  openLink,
 }: {
   row: ReviewRow;
   options: Options;
   /** On the product's own page: only the fields, kept until Save, without confirming, its note and its photos. */
   editOnly?: boolean;
+  /** Colour fields only matter for paints and other coloured goods; elsewhere they stay folded away. */
+  colours?: boolean;
   onCancel?: () => void;
+  /** Links to the product's own page, for its photos and stock. */
+  openLink?: boolean;
 }) {
   const t = useTranslations("review");
   const c = useTranslations("common");
   const router = useRouter();
   const [pending, start] = useTransition();
   const [confirmed, setConfirmed] = useState(row.confirmed);
+  const [showColours, setShowColours] = useState(colours);
   const [manufacturerId, setManufacturerId] = useState(String(row.manufacturerId ?? ""));
   const [lineId, setLineId] = useState(String(row.lineId ?? ""));
   const lines = options.manufacturers.find((m) => String(m.id) === manufacturerId)?.lines ?? [];
@@ -441,7 +449,17 @@ export function ReviewCard({
       onInput={editOnly ? () => setDirty(true) : undefined}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-display text-base tracking-[0.04em]">{row.name}</h2>
+        <h2 className="font-display text-base tracking-[0.04em]">
+          {row.name}
+          {openLink && (
+            <Link
+              href={`/admin/artikli/${row.id}`}
+              className="ml-3 font-ui text-xs text-[var(--accent-bright)] underline underline-offset-2"
+            >
+              {t("openProduct")}
+            </Link>
+          )}
+        </h2>
         {!editOnly && (
           <div className="flex items-center gap-3 font-ui text-xs">
             <span
@@ -514,32 +532,54 @@ export function ReviewCard({
             }}
             empty={t("none")}
           />
-          <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
+          {showColours && (
+            <>
+              <TextEdit label={f("colourName")} value={row.colourName ?? ""} save={save("colourName")} />
+              <TextEdit
+                label={f("colourNameMaker")}
+                value={row.colourNameMaker ?? ""}
+                save={save("colourNameMaker")}
+              />
+            </>
+          )}
           <TextEdit
-            label={f("colourNameMaker")}
-            value={row.colourNameMaker ?? ""}
-            save={save("colourNameMaker")}
+            // Without a colour, the number is the maker's article number, as the shop calls it too.
+            label={row.colourName ? f("colourCode") : t("makerCode")}
+            value={row.colourCode ?? ""}
+            save={save("colourCode")}
           />
-          <TextEdit label={f("colourCode")} value={row.colourCode ?? ""} save={save("colourCode")} />
-          <SelectEdit
-            label={f("colourFamily")}
-            value={row.colourFamily ?? ""}
-            options={COLOUR_FAMILIES}
-            save={save("colourFamily")}
-            empty={t("none")}
-          />
-          <SelectEdit
-            label={f("medium")}
-            value={row.medium ?? ""}
-            options={[
-              ["akril", t("mediumAkril")],
-              ["ulje", t("mediumUlje")],
-            ]}
-            save={save("medium")}
-            empty={t("none")}
-          />
-          <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
+          {showColours && (
+            <>
+              <SelectEdit
+                label={f("colourFamily")}
+                value={row.colourFamily ?? ""}
+                options={COLOUR_FAMILIES}
+                save={save("colourFamily")}
+                empty={t("none")}
+              />
+              <SelectEdit
+                label={f("medium")}
+                value={row.medium ?? ""}
+                options={[
+                  ["akril", t("mediumAkril")],
+                  ["ulje", t("mediumUlje")],
+                ]}
+                save={save("medium")}
+                empty={t("none")}
+              />
+              <TextEdit label={f("finish")} value={row.finish ?? ""} save={save("finish")} />
+            </>
+          )}
         </div>
+        {!showColours && (
+          <button
+            type="button"
+            onClick={() => setShowColours(true)}
+            className="mt-2 font-ui text-xs text-[var(--accent-bright)] underline-offset-2 hover:underline"
+          >
+            {t("showColours")}
+          </button>
+        )}
       </div>
 
       <div className="mt-3 grid gap-3 md:grid-cols-2">
@@ -552,8 +592,8 @@ export function ReviewCard({
         <TextEdit label={f("specs")} value={row.specs} rows={4} save={save("specs")} />
       </div>
 
-      {/* A series' motifs are edited row by row above, with their photos. */}
-      {!(editOnly && row.variantKind === "MOTIF") && (
+      {/* On the product's own page the šifre are edited row by row above, with their photos and stock. */}
+      {!editOnly && (
         <div className="mt-3 grid gap-2">
           {row.variants.map((v) => (
             <div key={v.id} className="grid grid-cols-2 items-end gap-3 md:grid-cols-4">
@@ -638,10 +678,28 @@ function LeaveDialog({ onStay, onLeave }: { onStay: () => void; onLeave: () => v
 }
 
 /** A product's fields on its own page. Cancel starts them again from what is saved. */
-export function ProductEditCard({ row, options }: { row: ReviewRow; options: Options }) {
+export function ProductEditCard({
+  row,
+  options,
+  colours,
+  openLink,
+}: {
+  row: ReviewRow;
+  options: Options;
+  colours?: boolean;
+  openLink?: boolean;
+}) {
   const [version, setVersion] = useState(0);
   return (
-    <ReviewCard key={version} row={row} options={options} editOnly onCancel={() => setVersion(version + 1)} />
+    <ReviewCard
+      key={version}
+      row={row}
+      options={options}
+      editOnly
+      colours={colours}
+      openLink={openLink}
+      onCancel={() => setVersion(version + 1)}
+    />
   );
 }
 

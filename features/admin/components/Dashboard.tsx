@@ -1,14 +1,16 @@
 import { getFormatter, getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { db } from "@/server/db";
 import { listHistory } from "../history";
 import { HistoryList } from "./HistoryList";
 
-export async function Dashboard() {
+/** The shop at a glance. What products still lack is counted by the catalogue and passed in. */
+export async function Dashboard({ missing }: { missing: { tab: string; count: number }[] }) {
   const t = await getTranslations("admin");
   const format = await getFormatter();
-  const [products, confirmed, variants, orders, newOrders, changes] = await Promise.all([
+  const m = await getTranslations("missing");
+  const [products, variants, orders, newOrders, changes] = await Promise.all([
     db.product.count(),
-    db.product.count({ where: { confirmed: true } }),
     db.productVariant.count(),
     db.order.count(),
     db.order.count({ where: { status: "NEW" } }),
@@ -32,9 +34,19 @@ export async function Dashboard() {
           </div>
         ))}
       </dl>
-      <p className="mt-6 font-ui text-sm text-[var(--text-secondary)]">
-        {t("review")}: {t("reviewProgress", { done: confirmed, total: products })}
-      </p>
+      <h2 className="mt-8 font-display text-lg tracking-[0.08em]">{m("title")}</h2>
+      <ul className="mt-3 flex flex-wrap gap-2 font-ui text-sm">
+        {missing.map(({ tab, count }) => (
+          <li key={tab}>
+            <Link
+              href={{ pathname: "/admin/dopuna", query: { tab } }}
+              className="block rounded-[2px] border border-[var(--border-subtle)] px-3 py-2 hover:border-[var(--border-hover)]"
+            >
+              {m(`tabs.${tab}`)}: <span className="text-[var(--accent-bright)]">{format.number(count)}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
       <h2 className="mt-10 font-display text-lg tracking-[0.08em]">{t("lastChanges")}</h2>
       {changes.rows.length === 0 ? (
         <p className="mt-3 font-ui text-sm text-[var(--text-muted)]">{t("noChanges")}</p>
