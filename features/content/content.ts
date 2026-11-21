@@ -1,3 +1,4 @@
+import { displayName } from "@/lib/colour-swatch";
 import { slugify } from "@/lib/slug";
 import { UserError } from "@/server/admin/action";
 import { type AuditActor, audit } from "@/server/audit";
@@ -42,11 +43,11 @@ export const getArticleAdmin = (id: number) => db.article.findUnique({ where: { 
 export async function productLabels(ids: number[]) {
   const rows = await db.product.findMany({
     where: { id: { in: ids } },
-    select: { id: true, name: true, colourName: true, colourNameMaker: true },
+    select: { id: true, name: true, lineId: true, colourName: true, colourNameMaker: true },
   });
   return ids.flatMap((id) => {
     const row = rows.find((r) => r.id === id);
-    return row ? [{ id, name: row.colourName ?? row.colourNameMaker ?? row.name }] : [];
+    return row ? [{ id, name: displayName(row) }] : [];
   });
 }
 

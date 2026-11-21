@@ -1,4 +1,5 @@
 import { Decimal } from "decimal.js";
+import { displayName } from "@/lib/colour-swatch";
 import { mediaUrl } from "@/lib/media";
 import { cardPhoto } from "@/lib/product-photos";
 import { UserError } from "@/server/admin/action";
@@ -13,6 +14,7 @@ const rowSelect = {
   status: true,
   colourName: true,
   colourNameMaker: true,
+  lineId: true,
   colourFamily: true,
   category: { select: { name: true } },
   variants: {
@@ -35,7 +37,7 @@ function toRow(p: Row) {
   const photo = cardPhoto(p.photos, p.variants);
   return {
     id: p.id,
-    name: p.colourName ?? p.colourNameMaker ?? p.name,
+    name: displayName(p),
     fullName: p.name,
     category: p.category?.name ?? null,
     colourFamily: p.colourFamily,

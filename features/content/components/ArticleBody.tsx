@@ -11,6 +11,7 @@ export type InlineProduct = {
   id: number;
   slug: string;
   name: string;
+  lineId: number | null;
   colourName: string | null;
   colourNameMaker: string | null;
   colourFamily: string | null;

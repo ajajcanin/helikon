@@ -34,6 +34,7 @@ export async function readCart(rawLines: unknown, deliveryRateId?: number) {
         select: {
           slug: true,
           name: true,
+          lineId: true,
           status: true,
           colourName: true,
           colourNameMaker: true,
@@ -52,6 +53,7 @@ export async function readCart(rawLines: unknown, deliveryRateId?: number) {
       size: v.size,
       slug: v.product.slug,
       name: v.product.name,
+      lineId: v.product.lineId,
       colourName: v.product.colourName,
       colourNameMaker: v.product.colourNameMaker,
       colourFamily: v.product.colourFamily,
