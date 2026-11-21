@@ -15,7 +15,7 @@ import {
   renameManufacturer,
 } from "./manufacturers";
 import { addPhoto, deletePhoto, photoName, replacePhoto } from "./photos";
-import { adjustStock, recordStoreSale, setProductStatus } from "./products";
+import { adjustStock, recordStoreSale, setProductStatus, setVariantActive } from "./products";
 import {
   confirmProducts,
   REVIEW_FIELDS,
@@ -150,6 +150,14 @@ export const changeStock = productAction(
   z.object({ id, qty: z.number(), note: z.string().max(200) }),
   async ({ id, qty, note }, user) => {
     await adjustStock(id, qty, note, actorOf(user));
+    return { data: undefined };
+  },
+);
+
+export const showVariant = productAction(
+  z.object({ id, active: z.boolean() }),
+  async ({ id, active }, user) => {
+    await setVariantActive(id, active, actorOf(user));
     return { data: undefined };
   },
 );

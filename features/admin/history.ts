@@ -35,6 +35,7 @@ export const HISTORY_FIELDS = [
   "price",
   "stockQty",
   "status",
+  "active",
 ] as const;
 export type HistoryField = (typeof HISTORY_FIELDS)[number];
 
@@ -150,11 +151,17 @@ export async function listHistory({
             ? named(lines, value)
             : field === "colourFamily"
               ? (COLOUR_FAMILIES.find(([id]) => id === value)?.[1] ?? value)
-              : field === "status"
-                ? (STATUS[String(value)] ?? value)
-                : field === "specs"
-                  ? specsToText(value)
-                  : value;
+              : field === "active"
+                ? value === true
+                  ? "prikazana"
+                  : value === false
+                    ? "sakrivena"
+                    : value
+                : field === "status"
+                  ? (STATUS[String(value)] ?? value)
+                  : field === "specs"
+                    ? specsToText(value)
+                    : value;
     return shown === null || shown === undefined || shown === "" ? null : String(shown);
   };
 

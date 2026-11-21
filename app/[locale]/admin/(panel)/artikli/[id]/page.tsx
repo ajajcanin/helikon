@@ -22,8 +22,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   ]);
   if (!found || !product) notFound();
   const motifs = found.variantKind === "MOTIF";
-  // A series split into motifs keeps its old šifra, inactive, for its history; staff work with the motifs.
-  const row = motifs ? { ...found, variants: found.variants.filter((v) => v.active) } : found;
+  // A series split into motifs keeps its old šifra for its history; staff work with the motifs, which carry the series' šifra.
+  const row = motifs ? { ...found, variants: found.variants.filter((v) => v.externalId) } : found;
   return (
     <>
       <Link

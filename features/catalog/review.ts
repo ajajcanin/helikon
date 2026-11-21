@@ -215,7 +215,7 @@ const reviewInclude = {
   },
   variants: {
     orderBy: { sort: "asc" },
-    select: { id: true, sku: true, size: true, price: true, stockQty: true, active: true },
+    select: { id: true, sku: true, size: true, price: true, stockQty: true, active: true, externalId: true },
   },
 } satisfies Prisma.ProductInclude;
 
@@ -246,6 +246,7 @@ function toReviewRow(r: Prisma.ProductGetPayload<{ include: typeof reviewInclude
       price: v.price.toFixed(2),
       stockQty: v.stockQty,
       active: v.active,
+      externalId: v.externalId,
     })),
   };
 }

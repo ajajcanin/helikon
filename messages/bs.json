@@ -175,6 +175,9 @@
     "note": "Razlog (npr. popis)",
     "update": "Ažuriraj",
     "storeSale": "Prodano u radnji",
+    "hide": "Sakrij u prodavnici",
+    "show": "Prikaži u prodavnici",
+    "hidden": "Sakrivena u prodavnici",
     "sold": "Prodano: web {web} · radnja {store}",
     "sku": "Šifra",
     "size": "Veličina"
@@ -304,7 +307,8 @@
     "f_size": "Veličina",
     "f_price": "Cijena (KM)",
     "f_stockQty": "Zaliha",
-    "f_status": "Objava"
+    "f_status": "Objava",
+    "f_active": "U prodavnici"
   },
   "manufacturers": {
     "title": "Proizvođači",

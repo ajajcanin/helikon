@@ -166,3 +166,34 @@ export async function soldCounts(productId: number) {
   }
   return Object.fromEntries(counts);
 }
+
+/**
+ * Shows or hides one šifra in the shop, such as one size that won't be stocked while the others stay.
+ * A product's last šifra in the shop can't be hidden: archive the product instead.
+ */
+export async function setVariantActive(variantId: number, active: boolean, actor: AuditActor) {
+  await db.$transaction(async (tx) => {
+    const variant = await tx.productVariant.findUnique({
+      where: { id: variantId },
+      select: { sku: true, active: true, productId: true, externalId: true },
+    });
+    if (!variant) throw new UserError("Šifra ne postoji.");
+    if (variant.active === active) return;
+    if (!active) {
+      const others = await tx.productVariant.count({
+        where: { productId: variant.productId, active: true, id: { not: variantId } },
+      });
+      if (others === 0) throw new UserError("Ovo je jedina šifra u prodavnici. Arhivirajte artikal.");
+    }
+    await tx.productVariant.update({ where: { id: variantId }, data: { active } });
+    await audit(tx, actor, {
+      action: "update",
+      table: "product_variant",
+      recordId: variant.sku,
+      summary: active
+        ? `Šifra ${variant.sku} vraćena u prodavnicu`
+        : `Šifra ${variant.sku} sakrivena u prodavnici`,
+      changes: { active: [variant.active, active] },
+    });
+  });
+}

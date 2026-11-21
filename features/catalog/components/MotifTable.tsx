@@ -8,6 +8,7 @@ import { Input } from "@/components/atoms/Field";
 import { useAdminAction } from "@/lib/use-admin-action";
 import { changeStock, saveVariantField, storeSale } from "../actions";
 import type { ReviewRow } from "../review";
+import { VisibilityButton } from "./ProductControls";
 import { PhotoSlot } from "./ProductReview";
 
 type Motif = ReviewRow["variants"][number];
@@ -82,9 +83,11 @@ function MotifRow({
           >
             {p("storeSale")}
           </Button>
+          <VisibilityButton variant={motif} run={run} pending={pending} />
           <span className="font-ui text-xs text-[var(--text-muted)]">
             {p("sold", { web: sold?.web ?? 0, store: sold?.store ?? 0 })}
           </span>
+          {!motif.active && <span className="font-ui text-xs text-[var(--warning)]">{p("hidden")}</span>}
           <span aria-live="polite">
             {error ? <Caption tone="error">{error}</Caption> : saved && <Caption>{t("saved")}</Caption>}
           </span>
@@ -100,7 +103,7 @@ export function MotifTable({ row, sold }: { row: ReviewRow; sold: Record<number,
     <ul className="border-t border-[var(--border-subtle)]">
       {row.variants.map((motif) => (
         <MotifRow
-          key={`${motif.id}-${motif.size}-${motif.price}-${motif.stockQty}`}
+          key={`${motif.id}-${motif.size}-${motif.price}-${motif.stockQty}-${motif.active}`}
           productId={row.id}
           motif={motif}
           photo={row.photos.find((photo) => photo.variantId === motif.id)}
